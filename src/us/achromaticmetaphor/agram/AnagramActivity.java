@@ -16,7 +16,7 @@ import java.util.List;
 public class AnagramActivity extends Activity {
 
   private Generator gen;
-  private ProgressDialog pdia;
+  private String input = "";
 
   @Override
   protected void onCreate(Bundle state) {
@@ -26,21 +26,28 @@ public class AnagramActivity extends Activity {
     promptCharacters();
   }
 
+  public void refresh() {
+    final ProgressDialog pdia = ProgressDialog.show(AnagramActivity.this, "Generating", "Please wait", true, false);
+    (new AsyncGenerate(gen, new AsyncGenerate.Listener() {
+      public void onFinished(List<String> result) {
+        ArrayAdapter adapter = new ArrayAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, result);
+        ((ListView) findViewById(R.id.cmdlist)).setAdapter(adapter);
+        pdia.dismiss();
+      }
+    })).execute(input);
+  }
+
   public void promptCharacters() {
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     final EditText edit = new EditText(this);
+    edit.setText(input);
+    edit.selectAll();
     builder.setView(edit);
     builder.setTitle("Choose characters");
     builder.setPositiveButton("Confirm", new DialogInterface.OnClickListener () {
       public void onClick(DialogInterface di, int button) {
-        pdia = ProgressDialog.show(AnagramActivity.this, "Generating", "Please wait", true, false);
-        (new AsyncGenerate(gen, new AsyncGenerate.Listener() {
-          public void onFinished(List<String> result) {
-            ArrayAdapter adapter = new ArrayAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, result);
-            ((ListView) findViewById(R.id.cmdlist)).setAdapter(adapter);
-            pdia.dismiss();
-          }
-        })).execute(edit.getText().toString().toLowerCase().replaceAll("[^abcdefghijklmnopqrstuvwxyz1234567890]", ""));
+        input = edit.getText().toString().toLowerCase().replaceAll("[^abcdefghijklmnopqrstuvwxyz1234567890]", "");
+        refresh();
       }
     });
     builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener () {
@@ -53,13 +60,18 @@ public class AnagramActivity extends Activity {
   public boolean onCreateOptionsMenu(Menu menu) {
     super.onCreateOptionsMenu(menu);
     menu.add("Choose characters");
+    if (gen instanceof Refreshable)
+      menu.add("Refresh");
     return true;
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem mi) {
     super.onOptionsItemSelected(mi);
-    promptCharacters();
+    if (mi.getTitle().equals("Choose characters"))
+      promptCharacters();
+    if (mi.getTitle().equals("Refresh"))
+      refresh();
     return true;
   }
 }

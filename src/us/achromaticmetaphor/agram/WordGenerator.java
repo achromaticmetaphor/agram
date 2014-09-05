@@ -2,7 +2,7 @@ package us.achromaticmetaphor.agram;
 
 import java.util.List;
 
-public class WordGenerator implements Generator {
+public class WordGenerator implements Generator, Refreshable {
 
   @Override
   public List<String> generate(String s) {
