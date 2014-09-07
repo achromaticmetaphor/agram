@@ -16,14 +16,14 @@ public class About extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_listview);
-    final String [] cmds = new String [] {"About app", "About word list"};
+    final String [] cmds = new String [] {"About app", "About word list", "About icons"};
     final ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, cmds);
     ListView listView = (ListView) findViewById(R.id.cmdlist);
     listView.setAdapter(adapter);
     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       public void onItemClick(AdapterView<?> av, View v, int pos, long id) {
         Intent intent = new Intent(About.this, AboutText.class);
-        intent.putExtra("about_text", pos == 0 ? R.string.about_code : R.string.about_word_list);
+        intent.putExtra("about_text", pos == 0 ? R.string.about_code : pos == 1 ? R.string.about_word_list : R.string.about_icons);
         startActivity(intent);
       }
     });

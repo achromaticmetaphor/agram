@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -56,12 +57,25 @@ public class AnagramActivity extends Activity {
     builder.show();
   }
 
+  private static MenuItem addMenuItem(Menu menu, String title) {
+    MenuItem mi = menu.add(title);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+      mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+    return mi;
+  }
+
+  private static MenuItem addMenuItem(Menu menu, String title, int ic) {
+    MenuItem mi = addMenuItem(menu, title);
+    mi.setIcon(ic);
+    return mi;
+  }
+
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     super.onCreateOptionsMenu(menu);
-    menu.add("Choose characters");
+    addMenuItem(menu, "Choose characters", R.drawable.ic_action_new);
     if (gen instanceof Refreshable)
-      menu.add("Refresh");
+      addMenuItem(menu, "Refresh", R.drawable.ic_action_refresh);
     return true;
   }
 
