@@ -1,17 +1,16 @@
 package us.achromaticmetaphor.agram;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Anagram implements Generator {
 
+  static { Native.load(); }
+
+  private static native String [] generate_native(String s);
+
   public List<String> generate(String s) {
-    List<String> out = new ArrayList<String>();
-    LCWC target = new LCWC(s);
-    for (LCWC lcwc : Words.words)
-      if (target.is_anagram(lcwc))
-        out.add(lcwc.str);
-    return out;
+    return Arrays.asList(generate_native(s));
   }
 
   public List<String> generate(String s, boolean b) {
