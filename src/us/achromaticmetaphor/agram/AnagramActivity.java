@@ -3,14 +3,19 @@ package us.achromaticmetaphor.agram;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 
 import java.util.List;
 
@@ -31,7 +36,7 @@ public class AnagramActivity extends Activity {
     final ProgressDialog pdia = ProgressDialog.show(AnagramActivity.this, "Generating", "Please wait", true, false);
     (new AsyncGenerate(gen, lng, new AsyncGenerate.Listener() {
       public void onFinished(List<String> result) {
-        ArrayAdapter adapter = new ArrayAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, result);
+        ArrayAdapter adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, result);
         ((ListView) findViewById(R.id.cmdlist)).setAdapter(adapter);
         pdia.dismiss();
       }
@@ -99,4 +104,20 @@ public class AnagramActivity extends Activity {
       refresh(false);
     return true;
   }
+
+  private static class MonoAdapter extends ArrayAdapter<String> {
+
+    public MonoAdapter(Context c, int tid, List<String> arr) {
+      super(c, tid, arr);
+    }
+
+    @Override
+    public View getView(int pos, View cv, ViewGroup p) {
+      View v = super.getView(pos, cv, p);
+      ((TextView) v.findViewById(android.R.id.text1)).setTypeface(Typeface.MONOSPACE);
+      return v;
+    }
+
+  }
+
 }
