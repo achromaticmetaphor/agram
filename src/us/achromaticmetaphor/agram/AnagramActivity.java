@@ -27,15 +27,19 @@ public class AnagramActivity extends Activity {
     promptCharacters();
   }
 
-  public void refresh() {
+  public void refresh(boolean lng) {
     final ProgressDialog pdia = ProgressDialog.show(AnagramActivity.this, "Generating", "Please wait", true, false);
-    (new AsyncGenerate(gen, new AsyncGenerate.Listener() {
+    (new AsyncGenerate(gen, lng, new AsyncGenerate.Listener() {
       public void onFinished(List<String> result) {
         ArrayAdapter adapter = new ArrayAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, result);
         ((ListView) findViewById(R.id.cmdlist)).setAdapter(adapter);
         pdia.dismiss();
       }
     })).execute(input);
+  }
+
+  private void fixin(EditText et) {
+    input = et.getText().toString().toLowerCase().replaceAll("[^abcdefghijklmnopqrstuvwxyz1234567890]", "");
   }
 
   public void promptCharacters() {
@@ -45,12 +49,19 @@ public class AnagramActivity extends Activity {
     edit.selectAll();
     builder.setView(edit);
     builder.setTitle("Choose characters");
-    builder.setPositiveButton("Confirm", new DialogInterface.OnClickListener () {
+    builder.setPositiveButton(gen.hasLongMode() ? "Short" : "Confirm", new DialogInterface.OnClickListener () {
       public void onClick(DialogInterface di, int button) {
-        input = edit.getText().toString().toLowerCase().replaceAll("[^abcdefghijklmnopqrstuvwxyz1234567890]", "");
-        refresh();
+        fixin(edit);
+        refresh(false);
       }
     });
+    if (gen.hasLongMode())
+      builder.setNeutralButton("Long", new DialogInterface.OnClickListener () {
+        public void onClick(DialogInterface di, int button) {
+          fixin(edit);
+          refresh(true);
+        }
+      });
     builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener () {
       public void onClick(DialogInterface di, int button) {}
     });
@@ -85,7 +96,7 @@ public class AnagramActivity extends Activity {
     if (mi.getTitle().equals("Choose characters"))
       promptCharacters();
     if (mi.getTitle().equals("Refresh"))
-      refresh();
+      refresh(false);
     return true;
   }
 }

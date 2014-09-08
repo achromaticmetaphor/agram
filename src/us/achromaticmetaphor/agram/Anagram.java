@@ -17,4 +17,6 @@ public class Anagram implements Generator {
     return generate(s);
   }
 
+  public boolean hasLongMode() { return false; }
+
 }

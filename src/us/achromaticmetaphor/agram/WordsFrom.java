@@ -26,4 +26,6 @@ public class WordsFrom implements Generator {
 
   private static native String [] generate_native(String s, boolean reuse);
 
+  public boolean hasLongMode() { return true; }
+
 }

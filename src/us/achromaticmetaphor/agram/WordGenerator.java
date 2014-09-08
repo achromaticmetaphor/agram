@@ -18,4 +18,8 @@ public class WordGenerator implements Generator, Refreshable {
   public List<String> generate(String s, boolean b) {
     return generate(s);
   }
+
+  @Override
+  public boolean hasLongMode() { return false; }
+
 }
