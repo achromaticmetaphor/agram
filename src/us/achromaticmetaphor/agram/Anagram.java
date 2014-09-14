@@ -18,5 +18,8 @@ public class Anagram implements Generator {
   }
 
   public boolean hasLongMode() { return false; }
+  public String longLabel() { return ""; }
+  public String shortLabel() { return "Generate"; }
+  public String inputPrompt() { return "Choose characters"; }
 
 }

@@ -26,5 +26,8 @@ public class Anagrams implements Generator {
   }
 
   public boolean hasLongMode() { return true; }
+  public String longLabel() { return "With permutations"; }
+  public String shortLabel() { return "Without permutations"; }
+  public String inputPrompt() { return "Choose characters"; }
 
 }

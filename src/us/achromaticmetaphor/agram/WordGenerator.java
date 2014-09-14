@@ -22,4 +22,13 @@ public class WordGenerator implements Generator, Refreshable {
   @Override
   public boolean hasLongMode() { return false; }
 
+  @Override
+  public String longLabel() { return ""; }
+
+  @Override
+  public String shortLabel() { return "Generate"; }
+
+  @Override
+  public String inputPrompt() { return "Number of words"; }
+
 }

@@ -53,15 +53,15 @@ public class AnagramActivity extends Activity {
     edit.setText(input);
     edit.selectAll();
     builder.setView(edit);
-    builder.setTitle("Choose characters");
-    builder.setPositiveButton(gen.hasLongMode() ? "Short" : "Confirm", new DialogInterface.OnClickListener () {
+    builder.setTitle(gen.inputPrompt());
+    builder.setPositiveButton(gen.shortLabel(), new DialogInterface.OnClickListener () {
       public void onClick(DialogInterface di, int button) {
         fixin(edit);
         refresh(false);
       }
     });
     if (gen.hasLongMode())
-      builder.setNeutralButton("Long", new DialogInterface.OnClickListener () {
+      builder.setNeutralButton(gen.longLabel(), new DialogInterface.OnClickListener () {
         public void onClick(DialogInterface di, int button) {
           fixin(edit);
           refresh(true);
