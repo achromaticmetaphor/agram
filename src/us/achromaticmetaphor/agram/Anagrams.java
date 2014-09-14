@@ -15,7 +15,7 @@ public class Anagrams implements Generator {
     List<String> out = Arrays.asList(generate_native(s, full));
     Collections.sort(out, new Comparator<String>() {
       public int compare(String a, String b) {
-        return a.length() < b.length() ? -1 : a.length() > b.length() ? 1 : a.compareTo(b);
+        return a.length() < b.length() ? -1 : a.length() > b.length() ? 1 : 0;
       }
     });
     return out;
