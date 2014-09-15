@@ -19,7 +19,7 @@ public class MainActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_listview);
-    final String [] cmds = new String [] {"Anagram", "Anagrams", "Word", "WordsFrom"};
+    final String [] cmds = new String [] {"Single-word anagrams", "Multi-word anagrams", "Random words", "Contained words"};
     final ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, cmds);
     ListView listView = (ListView) findViewById(R.id.cmdlist);
     listView.setAdapter(adapter);
