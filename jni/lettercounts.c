@@ -16,7 +16,7 @@ static int wccmp(const void * const va, const void * const vb)
 {
   const char * const a = va;
   const char * const b = vb;
-  return *a < *b ? -1 : a != b;
+  return *a < *b ? -1 : *a != *b;
 }
 
 void lettercounts(unsigned int counts[], char letters[], const char * const str)
