@@ -26,8 +26,9 @@ static int ll_wc_counts_probe(const void * const a, const void * const b)
 
 static size_t total_counts(const struct ll nodes[], const size_t len)
 {
+  size_t i;
   size_t sum = 0;
-  for (size_t i = 0; i < len; i++)
+  for (i = 0; i < len; i++)
     sum += nodes[i].ncounts;
   return sum;
 }
@@ -46,7 +47,8 @@ static int ll_counts_cmp(const void * const a, const void * const b)
 
 static void ll_make(unsigned int * const * const counts, struct ll * const nodes, const size_t nwords)
 {
-  for (size_t i = 0; i < nwords; i++)
+  size_t i;
+  for (i = 0; i < nwords; i++)
     {
       nodes[i].orig_offset = i;
       nodes[i].counts = counts[i];
@@ -56,16 +58,19 @@ static void ll_make(unsigned int * const * const counts, struct ll * const nodes
 
 int main(void)
 {
+  size_t i;
+  char * * const chars = malloc(NWORDS * sizeof(*chars));
+  unsigned int * * const counts = malloc(sizeof(*counts) * NWORDS);
+  struct ll * const nodes = malloc(sizeof(*nodes) * NWORDS);
+  size_t * const counts_offsets = malloc(sizeof(*counts_offsets) * NWORDS);
+
   puts("#include <stddef.h>");
   puts("#include <limits.h>");
   putchar('\n');
   puts("#include \"lcwc.h\"");
   putchar('\n');
 
-  char * * const chars = malloc(NWORDS * sizeof(*chars));
-  unsigned int * * const counts = malloc(sizeof(*counts) * NWORDS);
-
-  for (size_t i = 0; i < NWORDS; i++)
+  for (i = 0; i < NWORDS; i++)
     {
       const size_t len = strlen(words[i]) + 1;
       counts[i] = malloc(sizeof(*counts[i]) * len);
@@ -73,47 +78,47 @@ int main(void)
       lettercounts(counts[i], chars[i], words[i]);
     }
 
-  struct ll * const nodes = malloc(sizeof(*nodes) * NWORDS);
   ll_make(counts, nodes, NWORDS);
   free(counts);
 
-  unsigned int * wc_counts = malloc(sizeof(*wc_counts) * total_counts(nodes, NWORDS));
-  size_t counts_offset = 0;
+  {
+    unsigned int * wc_counts = malloc(sizeof(*wc_counts) * total_counts(nodes, NWORDS));
+    size_t counts_offset = 0;
 
-  qsort(nodes, NWORDS, sizeof(*nodes), ll_counts_cmp);
-  size_t * const counts_offsets = malloc(sizeof(*counts_offsets) * NWORDS);
-  for (size_t i = 0; i < NWORDS; i++)
-    {
-      size_t search_len = counts_offset - nodes[i].ncounts;
-      unsigned int * found = counts_offset > nodes[i].ncounts
-                               ? lfind(nodes+i, wc_counts, &search_len, sizeof(*wc_counts), ll_wc_counts_probe)
-                               : NULL;
-      if (found)
-        {
-          const size_t offset = found - wc_counts;
-          counts_offsets[nodes[i].orig_offset] = offset;
-        }
-      else
-        {
-          counts_offsets[nodes[i].orig_offset] = counts_offset;
-          memcpy(wc_counts + counts_offset, nodes[i].counts, nodes[i].ncounts * sizeof(*wc_counts));
-          counts_offset += nodes[i].ncounts;
-        }
-      free(nodes[i].counts);
-    }
+    qsort(nodes, NWORDS, sizeof(*nodes), ll_counts_cmp);
+    for (i = 0; i < NWORDS; i++)
+      {
+        size_t search_len = counts_offset - nodes[i].ncounts;
+        unsigned int * found = counts_offset > nodes[i].ncounts
+                                 ? lfind(nodes+i, wc_counts, &search_len, sizeof(*wc_counts), ll_wc_counts_probe)
+                                 : NULL;
+        if (found)
+          {
+            const size_t offset = found - wc_counts;
+            counts_offsets[nodes[i].orig_offset] = offset;
+          }
+        else
+          {
+            counts_offsets[nodes[i].orig_offset] = counts_offset;
+            memcpy(wc_counts + counts_offset, nodes[i].counts, nodes[i].ncounts * sizeof(*wc_counts));
+            counts_offset += nodes[i].ncounts;
+          }
+        free(nodes[i].counts);
+      }
 
-  free(nodes);
+    free(nodes);
 
-  puts("static unsigned int wc_counts[] = {");
-  for (size_t i = 0; i < counts_offset; i++)
-    printf("%d,\n", wc_counts[i]);
-  puts("};");
-  putchar('\n');
+    puts("static unsigned int wc_counts[] = {");
+    for (i = 0; i < counts_offset; i++)
+      printf("%d,\n", wc_counts[i]);
+    puts("};");
+    putchar('\n');
 
-  free(wc_counts);
+    free(wc_counts);
+  }
 
   puts("const struct wc words_counts[] = {");
-  for (size_t i = 0; i < NWORDS; i++)
+  for (i = 0; i < NWORDS; i++)
     {
       printf("{%u, ", (unsigned int) strlen(words[i]));
       printf("%u,\n", (unsigned int) strlen(chars[i]));
