@@ -82,16 +82,16 @@ int main(void)
   free(counts);
 
   {
-    unsigned int * wc_counts = malloc(sizeof(*wc_counts) * total_counts(nodes, NWORDS));
+    unsigned int * const wc_counts = malloc(sizeof(*wc_counts) * total_counts(nodes, NWORDS));
     size_t counts_offset = 0;
 
     qsort(nodes, NWORDS, sizeof(*nodes), ll_counts_cmp);
     for (i = 0; i < NWORDS; i++)
       {
         size_t search_len = counts_offset - nodes[i].ncounts;
-        unsigned int * found = counts_offset > nodes[i].ncounts
-                                 ? lfind(nodes+i, wc_counts, &search_len, sizeof(*wc_counts), ll_wc_counts_probe)
-                                 : NULL;
+        unsigned int * const found = counts_offset > nodes[i].ncounts
+                                       ? lfind(nodes+i, wc_counts, &search_len, sizeof(*wc_counts), ll_wc_counts_probe)
+                                       : NULL;
         if (found)
           {
             const size_t offset = found - wc_counts;

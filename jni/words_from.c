@@ -9,14 +9,14 @@
 #include <jni.h>
 #include "jnihelp.h"
 
-static void wc_max(const struct wc * lets)
+static void wc_max(const struct wc * const lets)
 {
   unsigned int i;
   for (i = 0; i < lets->nchars; i++)
     lets->counts[i] = UINT_MAX;
 }
 
-static size_t words_from_generate(const char * str, const char * * out, int max)
+static size_t words_from_generate(const char * const str, const char * out[], const int max)
 {
   size_t i, j = 0;
   struct wc target;
@@ -35,14 +35,14 @@ static size_t words_from_generate(const char * str, const char * * out, int max)
 }
 
 JNIEXPORT jobjectArray JNICALL Java_us_achromaticmetaphor_agram_WordsFrom_generate_1native
-  (JNIEnv * env, jclass class, jstring string, jboolean max)
+  (JNIEnv * const env, const jclass class, const jstring string, const jboolean max)
 {
-  const char * * tmp = malloc(sizeof(*tmp) * NWORDS);
-  const char * str = tmp ? (*env)->GetStringUTFChars(env, string, NULL) : NULL;
-  size_t len = str ? words_from_generate(str, tmp, max) : 0;
+  const char * * const tmp = malloc(sizeof(*tmp) * NWORDS);
+  const char * const str = tmp ? (*env)->GetStringUTFChars(env, string, NULL) : NULL;
+  const size_t len = str ? words_from_generate(str, tmp, max) : 0;
   if (str)
     (*env)->ReleaseStringUTFChars(env, string, str);
-  jobjectArray array = arr2jarr(env, tmp, len);
+  const jobjectArray array = arr2jarr(env, tmp, len);
   free(tmp);
   return array;
 }

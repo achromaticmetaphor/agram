@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void insert(char c, char l[], size_t * n)
+static void insert(const char c, char l[], size_t * const n)
 {
   size_t i;
   for (i = 0; i < *n; i++)
