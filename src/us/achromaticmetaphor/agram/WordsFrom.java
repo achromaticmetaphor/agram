@@ -5,8 +5,6 @@ import java.util.List;
 
 public class WordsFrom implements Generator {
 
-  static { Native.load(); }
-
   public List<String> generate(String s) {
     return generate(s, false);
   }

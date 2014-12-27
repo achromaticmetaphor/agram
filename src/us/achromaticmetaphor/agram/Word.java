@@ -6,18 +6,11 @@ import java.util.Random;
 
 public class Word {
 
-  private static final int NWORDS;
-
-  static {
-    Native.load();
-    NWORDS = get_nwords();
-  }
-
   private static native String pick_native(int n);
   private static native int get_nwords();
 
   public static String pick() {
-    return pick_native(new Random().nextInt(NWORDS));
+    return pick_native(new Random().nextInt(get_nwords()));
   }
 
   public static List<String> pick(int n) {

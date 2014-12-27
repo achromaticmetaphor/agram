@@ -3,6 +3,7 @@
 
 #include "lcwc.h"
 
-int is_within(const struct wc *, const struct wc *);
+int is_within_wl(const struct wc *, const struct lc *);
+int is_within_lw(const struct lc *, const struct wc *);
 
 #endif

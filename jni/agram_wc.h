@@ -4,7 +4,13 @@
 #include <stddef.h>
 #include "lcwc.h"
 
-extern const struct wc words_counts[];
-extern const size_t NWORDS;
+extern struct lc * words_counts;
+extern size_t NWORDS;
+extern char * strbase;
+extern char * charsbase;
+extern unsigned int * countsbase;
+
+void unload_wl(void);
+int load_wl(const char *);
 
 #endif

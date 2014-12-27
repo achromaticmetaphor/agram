@@ -6,6 +6,7 @@ public class Native {
     System.loadLibrary("anagram");
   }
 
-  public static void load() {}
+  public static native boolean init(String fn, String [] words);
+  public static native boolean init(String fn);
 
 }

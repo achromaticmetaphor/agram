@@ -17,7 +17,7 @@ static size_t anagram_generate(const char * const str, const char * out[])
     return 0;
   for (i = 0; i < NWORDS; i++)
     if (is_anagram(&target, words_counts+i))
-      out[j++] = words_counts[i].str;
+      out[j++] = strbase + words_counts[i].str;
   wc_free(&target);
   return j;
 }

@@ -3,6 +3,6 @@
 
 #include "lcwc.h"
 
-int is_anagram(const struct wc *, const struct wc *);
+int is_anagram(const struct wc *, const struct lc *);
 
 #endif

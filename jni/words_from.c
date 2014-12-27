@@ -27,8 +27,8 @@ static size_t words_from_generate(const char * const str, const char * out[], co
     wc_max(&target);
 
   for (i = 0; i < NWORDS; i++)
-    if (is_within(words_counts+i, &target))
-      out[j++] = words_counts[i].str;
+    if (is_within_lw(words_counts+i, &target))
+      out[j++] = strbase + words_counts[i].str;
 
   wc_free(&target);
   return j;

@@ -7,8 +7,6 @@ import java.util.List;
 
 public class Anagrams implements Generator {
 
-  static { Native.load(); }
-
   private static native String [] generate_native(String s, boolean full);
 
   public List<String> generate(String s, boolean full) {

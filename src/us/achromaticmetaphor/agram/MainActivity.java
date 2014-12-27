@@ -1,7 +1,9 @@
 package us.achromaticmetaphor.agram;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
@@ -10,6 +12,12 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class MainActivity extends Activity {
 
@@ -30,6 +38,31 @@ public class MainActivity extends Activity {
         startActivity(intent);
       }
     });
+    final ProgressDialog pdia = ProgressDialog.show(this, "Loading word list", "Please wait", true, false);
+    (new AsyncTask<Void, Void, Void>() {
+      @Override
+      protected Void doInBackground(Void... v) {
+        if (new File(getFilesDir(), "wordlist.k").exists())
+          Native.init(new File(getFilesDir(), "wordlist").getAbsolutePath());
+        else {
+          List<String> words = new ArrayList<String>();
+          try {
+            Scanner wordscan = new Scanner(getResources().getAssets().open("words"));
+            while (wordscan.hasNext())
+              words.add(wordscan.next());
+            Native.init(new File(getFilesDir(), "wordlist").getAbsolutePath(), words.toArray(new String[0]));
+          }
+          catch (IOException ioe) {
+            Native.init(new File(getFilesDir(), "NULL").getAbsolutePath(), new String[0]);
+          }
+        }
+        return null;
+      }
+      @Override
+      protected void onPostExecute(Void v) {
+        pdia.dismiss();
+      }
+    }).execute();
   }
 
   @Override

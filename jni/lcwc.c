@@ -2,10 +2,11 @@
 #include <string.h>
 #include <limits.h>
 
+#include "agram_wc.h"
 #include "lcwc.h"
 #include "lettercounts.h"
 
-int wc_sub(struct wc * const out, const struct wc * const a, const struct wc * const b)
+int wc_sub(struct wc * const out, const struct wc * const a, const struct lc * const b)
 {
   out->str = NULL;
   out->len = a->len - b->len;
@@ -18,9 +19,9 @@ int wc_sub(struct wc * const out, const struct wc * const a, const struct wc * c
     unsigned int b_i = 0;
     unsigned int o_i = 0;
     for (a_i = 0; a_i < a->nchars; a_i++)
-      if (a->chars[a_i] == b->chars[b_i])
+      if (a->chars[a_i] == charsbase[b->chars+b_i])
         {
-          const unsigned int diff = a->counts[a_i] - b->counts[b_i];
+          const unsigned int diff = a->counts[a_i] - countsbase[b->chars+b_i];
           if (diff)
             {
               out->chars[o_i] = a->chars[a_i];
@@ -61,4 +62,13 @@ int wc_init (struct wc * const target, const char * const str)
   lettercounts(target->counts, target->chars, str);
   target->nchars = strlen(target->chars);
   return 0;
+}
+
+void lcwc(struct wc * const a, const struct lc * const b)
+{
+  a->len = b->len;
+  a->nchars = b->nchars;
+  a->str = strbase + b->str;
+  a->chars = charsbase + b->chars;
+  a->counts = countsbase + b->chars;
 }
