@@ -52,20 +52,11 @@ void unload_wl(void)
 
 static void * omap(const char * const fn, size_t * const len)
 {
-  const int fd = open(fn, O_RDONLY);
-  if (fd == -1)
-    return MAP_FAILED;
-
+  int fd;
   struct stat st;
-  if (fstat(fd, &st))
-    {
-      close(fd);
-      return MAP_FAILED;
-    }
-
-  void * const mapping = mmap(0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+  void * const mapping = (fd = open(fn, O_RDONLY)) != -1 && ! fstat(fd, &st) ? mmap(0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0) : MAP_FAILED;
   close(fd);
-  *len = st.st_size;
+  *len = mapping == MAP_FAILED ? 0 : st.st_size;
   return mapping;
 }
 
