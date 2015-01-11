@@ -10,11 +10,11 @@
 #include <jni.h>
 #include "jnihelp.h"
 
-static size_t filter_lc(const struct lc * * const out, const struct lc * const * wcs, const struct wc * const target, int (* const ff)(const struct lc *, const struct wc *))
+static size_t filter_lc(const struct lc * * const out, const struct lc * const * wcs, const struct wc * const target)
 {
   const struct lc * * outp = out;
   for (; *wcs; wcs++)
-    if(ff(*wcs, target))
+    if(is_within_lw(*wcs, target))
       *outp++ = *wcs;
   *outp = NULL;
   return outp - out;
@@ -39,7 +39,7 @@ static size_t anagrams_print(const struct wc * const target, char * const prefix
   const struct lc * * const wcs = malloc(sizeof(*wcs) * (wcs_in_len + 1));
   if (! wcs)
     return 0;
-  const size_t wcslen = filter_lc(wcs, wcs_in, target, is_within_lw);
+  const size_t wcslen = filter_lc(wcs, wcs_in, target);
   size_t n = 0;
   const struct lc * const * wcsp;
   for (wcsp = wcs; *wcsp; wcsp++)
