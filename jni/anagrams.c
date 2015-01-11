@@ -6,25 +6,18 @@
 #include "agram_wc.h"
 #include "is_anagram.h"
 #include "is_within.h"
-#include "mlen.h"
 
 #include <jni.h>
 #include "jnihelp.h"
 
-MLEN_DECL(lc_p, const struct lc *)
-
-static const struct lc * * filter_lc(const struct lc * const * wcs, const struct wc * const target, int (* const ff)(const struct lc *, const struct wc *))
+static size_t filter_lc(const struct lc * * const out, const struct lc * const * wcs, const struct wc * const target, int (* const ff)(const struct lc *, const struct wc *))
 {
-  const struct lc * * const out = malloc(sizeof(*out) * (mlen_lc_p(wcs)+1));
-  if (out)
-    {
-      const struct lc * * outp = out;
-      for (; *wcs; wcs++)
-        if(ff(*wcs, target))
-          *outp++ = *wcs;
-      *outp = NULL;
-    }
-  return out;
+  const struct lc * * outp = out;
+  for (; *wcs; wcs++)
+    if(ff(*wcs, target))
+      *outp++ = *wcs;
+  *outp = NULL;
+  return outp - out;
 }
 
 static const struct lc * * alift(const struct lc * const wcs, const size_t len)
@@ -40,12 +33,13 @@ static const struct lc * * alift(const struct lc * const wcs, const size_t len)
   return out;
 }
 
-static size_t anagrams_print(const struct wc * const target, char * const prefix, const size_t offset, const struct lc * const * const wcs_in, const int fast, const char * out[], size_t n)
+static size_t anagrams_print(const struct wc * const target, char * const prefix, const size_t offset, const struct lc * const * const wcs_in, const size_t wcs_in_len, const int fast, const char * out[], size_t n)
 {
   prefix[offset] = ' ';
-  const struct lc * * const wcs = filter_lc(wcs_in, target, is_within_lw);
+  const struct lc * * const wcs = malloc(sizeof(*wcs) * (wcs_in_len + 1));
   if (! wcs)
     return n;
+  const size_t wcslen = filter_lc(wcs, wcs_in, target, is_within_lw);
   const struct lc * const * wcsp;
   for (wcsp = wcs; *wcsp; wcsp++)
     {
@@ -62,7 +56,7 @@ static size_t anagrams_print(const struct wc * const target, char * const prefix
           struct wc new_target;
           if (wc_sub(&new_target, target, *wcsp))
             return n;
-          n = anagrams_print(&new_target, prefix, offset + strlen(strbase + (**wcsp).str) + 1, fast ? wcsp : wcs, fast, out, n);
+          n = anagrams_print(&new_target, prefix, offset + strlen(strbase + (**wcsp).str) + 1, fast ? wcsp : wcs, fast ? wcslen - (wcsp - wcs) : wcslen, fast, out, n);
           wc_free(&new_target);
         }
     }
@@ -77,7 +71,7 @@ static size_t anagrams_generate(const char * const s, const char * out[], const 
   char * const prefix = wcs ? malloc(sizeof(*prefix) * (strlen(s)*2+1)) : NULL;
   if (wc_init(&target, s))
     return 0;
-  size_t n = prefix ? anagrams_print(&target, prefix, 0, wcs, fast, out, 0) : 0;
+  size_t n = prefix ? anagrams_print(&target, prefix, 0, wcs, NWORDS, fast, out, 0) : 0;
   free(wcs);
   free(prefix);
   wc_free(&target);
