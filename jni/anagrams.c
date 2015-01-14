@@ -33,12 +33,9 @@ static const struct lc * * alift(const struct lc * const wcs, const size_t len)
   return out;
 }
 
-static size_t anagrams_print(const struct wc * const target, char * const prefix, const size_t offset, const struct lc * const * const wcs_in, const size_t wcs_in_len, const int fast, const char * out[])
+static size_t anagrams_print(const struct wc * const target, char * const prefix, const size_t offset, const struct lc * const * const wcs_in, const int fast, const char * out[], const struct lc * * const wcs)
 {
   prefix[offset] = ' ';
-  const struct lc * * const wcs = malloc(sizeof(*wcs) * (wcs_in_len + 1));
-  if (! wcs)
-    return 0;
   const size_t wcslen = filter_lc(wcs, wcs_in, target);
   size_t n = 0;
   const struct lc * const * wcsp;
@@ -57,11 +54,10 @@ static size_t anagrams_print(const struct wc * const target, char * const prefix
           struct wc new_target;
           if (wc_sub(&new_target, target, *wcsp))
             return n;
-          n += anagrams_print(&new_target, prefix, offset + strlen(strbase + (**wcsp).str) + 1, fast ? wcsp : wcs, fast ? wcslen - (wcsp - wcs) : wcslen, fast, out + n);
+          n += anagrams_print(&new_target, prefix, offset + strlen(strbase + (**wcsp).str) + 1, fast ? wcsp : wcs, fast, out + n, wcs + wcslen + 1);
           wc_free(&new_target);
         }
     }
-  free(wcs);
   return n;
 }
 
@@ -69,10 +65,13 @@ static size_t anagrams_generate(const char * const s, const char * out[], const 
 {
   struct wc target;
   const struct lc * * const wcs = alift(words_counts, NWORDS);
-  char * const prefix = wcs ? malloc(sizeof(*prefix) * (strlen(s)*2+1)) : NULL;
+  const size_t prefsize = strlen(s) * 2 + 1;
+  char * const prefix = wcs ? malloc(sizeof(*prefix) * prefsize) : NULL;
   if (wc_init(&target, s))
     return 0;
-  size_t n = prefix ? anagrams_print(&target, prefix, 0, wcs, NWORDS, fast, out) : 0;
+  const struct lc * * const scratch = prefix ? malloc(sizeof(*scratch) * (NWORDS + 1) * prefsize) : NULL;
+  const size_t n = scratch ? anagrams_print(&target, prefix, 0, wcs, fast, out, scratch) : 0;
+  free(scratch);
   free(wcs);
   free(prefix);
   wc_free(&target);
