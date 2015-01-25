@@ -64,11 +64,11 @@ static size_t anagrams_print(const struct wc * const target, char * const prefix
 static size_t anagrams_generate(const char * const s, const char * out[], const int fast)
 {
   struct wc target;
+  if (wc_init(&target, s))
+    return 0;
   const struct lc * * const wcs = alift(words_counts, NWORDS);
   const size_t prefsize = strlen(s) * 2 + 1;
   char * const prefix = wcs ? malloc(sizeof(*prefix) * prefsize) : NULL;
-  if (wc_init(&target, s))
-    return 0;
   const struct lc * * const scratch = prefix ? malloc(sizeof(*scratch) * (NWORDS + 1) * prefsize) : NULL;
   const size_t n = scratch ? anagrams_print(&target, prefix, 0, wcs, fast, out, scratch) : 0;
   free(scratch);
