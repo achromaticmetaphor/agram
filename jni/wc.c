@@ -1,16 +1,17 @@
 #include <fcntl.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <errno.h>
+#include <unistd.h>
+
+#include "agram_wc.h"
+#include "lcwc.h"
+#include "lettercounts.h"
 
 #include <jni.h>
-
-#include "lettercounts.h"
-#include "lcwc.h"
 #include "jnihelp.h"
 
 static size_t wllen(const char * const words[], const size_t nwords)

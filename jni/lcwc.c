@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include "agram_wc.h"
 #include "lcwc.h"

@@ -1,9 +1,9 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "lcwc.h"
 #include "agram_wc.h"
 #include "is_anagram.h"
+#include "lcwc.h"
 
 #include <jni.h>
 #include "jnihelp.h"
