@@ -25,19 +25,20 @@ static void unload_wl_s(const int n)
 {
   switch(n)
     {
+
+#define MUNMAP(mapping) \
+  munmap(mapping, mapping ## _len); \
+  mapping ## _len = 0;
+
       default:
       case 5:
-        munmap(countsbase, countsbase_len);
-        countsbase_len = 0;
+        MUNMAP(countsbase)
       case 4:
-        munmap(charsbase, charsbase_len);
-        charsbase_len = 0;
+        MUNMAP(charsbase)
       case 3:
-        munmap(strbase, strbase_len);
-        strbase_len = 0;
+        MUNMAP(strbase)
       case 2:
-        munmap(words_counts, words_counts_len);
-        words_counts_len = 0;
+        MUNMAP(words_counts)
       case 1:
         NWORDS = 0;
       case 0:
@@ -72,25 +73,17 @@ int load_wl(const char * const fn)
     return unload_wl_s(1), 1;
 
   char fne[strlen(fn)+3];
-  sprintf(fne, "%s.i", fn);
-  words_counts = omap(fne, &words_counts_len);
-  if (words_counts == MAP_FAILED)
-    return unload_wl_s(1), 1;
 
-  sprintf(fne, "%s.s", fn);
-  strbase = omap(fne, &strbase_len);
-  if (strbase == MAP_FAILED)
-    return unload_wl_s(2), 1;
+#define OMAP(suffix, mapping, depth) \
+  sprintf(fne, "%s." # suffix, fn); \
+  mapping = omap(fne, &mapping ## _len); \
+  if (mapping == MAP_FAILED) \
+    return unload_wl_s(depth), 1;
 
-  sprintf(fne, "%s.c", fn);
-  charsbase = omap(fne, &charsbase_len);
-  if (charsbase == MAP_FAILED)
-    return unload_wl_s(3), 1;
-
-  sprintf(fne, "%s.n", fn);
-  countsbase = omap(fne, &countsbase_len);
-  if (countsbase == MAP_FAILED)
-    return unload_wl_s(4), 1;
+  OMAP(i, words_counts, 1)
+  OMAP(s, strbase, 2)
+  OMAP(c, charsbase, 3)
+  OMAP(n, countsbase, 4)
 
   return 0;
 }
