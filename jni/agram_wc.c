@@ -10,16 +10,16 @@
 size_t NWORDS = 0;
 
 struct lc * words_counts;
-size_t words_counts_len = 0;
+static size_t words_counts_len = 0;
 
 char * strbase;
-size_t strbase_len = 0;
+static size_t strbase_len = 0;
 
 char * charsbase;
-size_t charsbase_len = 0;
+static size_t charsbase_len = 0;
 
 unsigned int * countsbase;
-size_t countsbase_len = 0;
+static size_t countsbase_len = 0;
 
 static void unload_wl_s(const int n)
 {
