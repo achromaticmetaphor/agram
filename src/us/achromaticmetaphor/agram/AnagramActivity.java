@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,12 +18,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AnagramActivity extends Activity {
 
   private Generator gen;
   private String input = "";
+  private List<String> shareList = new ArrayList<String>(0);
 
   @Override
   protected void onCreate(Bundle state) {
@@ -38,9 +41,21 @@ public class AnagramActivity extends Activity {
       public void onFinished(List<String> result) {
         ArrayAdapter adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, result);
         ((ListView) findViewById(R.id.cmdlist)).setAdapter(adapter);
+        shareList = result;
         pdia.dismiss();
       }
     })).execute(input);
+  }
+
+  private void share() {
+    StringBuilder sb = new StringBuilder();
+    for (String s : shareList)
+      sb.append(s).append("\n");
+    Intent send = new Intent();
+    send.setAction(Intent.ACTION_SEND);
+    send.putExtra(Intent.EXTRA_TEXT, sb.toString());
+    send.setType("text/plain");
+    startActivity(Intent.createChooser(send, null));
   }
 
   private void fixin(EditText et) {
@@ -92,6 +107,7 @@ public class AnagramActivity extends Activity {
     addMenuItem(menu, "Choose characters", R.drawable.ic_action_new);
     if (gen instanceof Refreshable)
       addMenuItem(menu, "Refresh", R.drawable.ic_action_refresh);
+    addMenuItem(menu, "Share", R.drawable.ic_action_share);
     return true;
   }
 
@@ -102,6 +118,8 @@ public class AnagramActivity extends Activity {
       promptCharacters();
     if (mi.getTitle().equals("Refresh"))
       refresh(false);
+    if (mi.getTitle().equals("Share"))
+      share();
     return true;
   }
 
