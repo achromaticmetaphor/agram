@@ -18,14 +18,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class AnagramActivity extends Activity {
 
   private Generator gen;
   private String input = "";
-  private List<String> shareList = new ArrayList<String>(0);
+  private String [] shareList = new String [0];
 
   @Override
   protected void onCreate(Bundle state) {
@@ -38,7 +35,7 @@ public class AnagramActivity extends Activity {
   public void refresh(boolean lng) {
     final ProgressDialog pdia = ProgressDialog.show(AnagramActivity.this, "Generating", "Please wait", true, false);
     (new AsyncGenerate(gen, lng, new AsyncGenerate.Listener() {
-      public void onFinished(List<String> result) {
+      public void onFinished(String [] result) {
         ArrayAdapter adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, result);
         ((ListView) findViewById(R.id.cmdlist)).setAdapter(adapter);
         shareList = result;
@@ -125,7 +122,7 @@ public class AnagramActivity extends Activity {
 
   private static class MonoAdapter extends ArrayAdapter<String> {
 
-    public MonoAdapter(Context c, int tid, List<String> arr) {
+    public MonoAdapter(Context c, int tid, String [] arr) {
       super(c, tid, arr);
     }
 

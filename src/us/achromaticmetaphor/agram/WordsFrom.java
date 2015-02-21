@@ -1,16 +1,13 @@
 package us.achromaticmetaphor.agram;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class WordsFrom implements Generator {
 
-  public List<String> generate(String s) {
+  public String [] generate(String s) {
     return generate(s, false);
   }
 
-  public List<String> generate(String s, boolean reuse) {
-    return Arrays.asList(generate_native(s, reuse));
+  public String [] generate(String s, boolean reuse) {
+    return generate_native(s, reuse);
   }
 
   private static native String [] generate_native(String s, boolean reuse);
