@@ -50,10 +50,10 @@ public class MainActivity extends Activity {
             Scanner wordscan = new Scanner(getResources().getAssets().open("words"));
             while (wordscan.hasNext())
               words.add(wordscan.next());
-            Native.init(new File(getFilesDir(), "wordlist").getAbsolutePath(), words.toArray(new String[0]));
+            Native.init(new File(getFilesDir(), "wordlist").getAbsolutePath(), words);
           }
           catch (IOException ioe) {
-            Native.init(new File(getFilesDir(), "NULL").getAbsolutePath(), new String[0]);
+            Native.init(new File(getFilesDir(), "NULL").getAbsolutePath(), new ArrayList<String>());
           }
         }
         return null;

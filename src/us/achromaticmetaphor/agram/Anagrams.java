@@ -5,10 +5,10 @@ import java.util.Comparator;
 
 public class Anagrams implements Generator {
 
-  private static native String [] generate_native(String s, boolean full);
+  private static native int [] [] generate_native(int [] s, boolean full);
 
   public String [] generate(String s, boolean full) {
-    String [] out = generate_native(s, full);
+    String [] out = Native.codepoints(generate_native(Native.codepoints(s), full));
     Arrays.sort(out, new Comparator<String>() {
       public int compare(String a, String b) {
         return a.length() < b.length() ? -1 : a.length() > b.length() ? 1 : 0;

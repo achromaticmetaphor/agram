@@ -6,11 +6,12 @@ public class Word {
 
   private static final Random random = new Random();
 
-  private static native String pick_native(int n);
+  private static native int [] pick_native(int n);
   private static native int get_nwords();
 
   public static String pick() {
-    return pick_native(random.nextInt(get_nwords()));
+    int [] codepoints = pick_native(random.nextInt(get_nwords()));
+    return new String(codepoints, 0, codepoints.length);
   }
 
   public static String [] pick(int n) {

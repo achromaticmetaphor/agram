@@ -7,10 +7,10 @@ public class WordsFrom implements Generator {
   }
 
   public String [] generate(String s, boolean reuse) {
-    return generate_native(s, reuse);
+    return Native.codepoints(generate_native(Native.codepoints(s), reuse));
   }
 
-  private static native String [] generate_native(String s, boolean reuse);
+  private static native int [] [] generate_native(int [] s, boolean reuse);
 
   public boolean hasLongMode() { return true; }
   public String longLabel() { return "Reuse characters"; }

@@ -2,10 +2,10 @@ package us.achromaticmetaphor.agram;
 
 public class Anagram implements Generator {
 
-  private static native String [] generate_native(String s);
+  private static native int [] [] generate_native(int [] s);
 
   public String [] generate(String s) {
-    return generate_native(s);
+    return Native.codepoints(generate_native(Native.codepoints(s)));
   }
 
   public String [] generate(String s, boolean b) {

@@ -8,15 +8,17 @@
 
 #include "lcwc.h"
 
+#include <jni.h>
+
 size_t NWORDS = 0;
 
 struct lc * words_counts;
 static size_t words_counts_len = 0;
 
-char * strbase;
+jint * strbase;
 static size_t strbase_len = 0;
 
-char * charsbase;
+jint * charsbase;
 static size_t charsbase_len = 0;
 
 unsigned int * countsbase;

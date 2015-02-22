@@ -1,6 +1,8 @@
 #ifndef LETTERCOUNTS_H
 #define LETTERCOUNTS_H
 
-void lettercounts(unsigned int [], char [], const char *);
+#include <jni.h>
+
+void lettercounts(unsigned int [], jint [], const jint *);
 
 #endif

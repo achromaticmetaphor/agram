@@ -2,8 +2,11 @@
 #include <string.h>
 
 #include "agram_wc.h"
+#include "astr.h"
 #include "lcwc.h"
 #include "lettercounts.h"
+
+#include <jni.h>
 
 int wc_sub(struct wc * const out, const struct wc * const a, const struct lc * const b)
 {
@@ -48,18 +51,18 @@ void wc_free(struct wc * const del)
   free(del->counts);
 }
 
-int wc_init (struct wc * const target, const char * const str)
+int wc_init (struct wc * const target, const jint * const str)
 {
-  target->str = strdup(str);
+  target->str = astrdup(str);
   if (! target->str)
     return 1;
-  target->len = strlen(str);
+  target->len = astrlen(str);
   target->chars = malloc(sizeof(*target->chars) * (target->len + 1));
   target->counts = malloc(sizeof(*target->counts) * (target->len + 1));
   if ((! target->chars) || (! target->counts))
     return wc_free(target), 1;
   lettercounts(target->counts, target->chars, str);
-  target->nchars = strlen(target->chars);
+  target->nchars = astrlen(target->chars);
   return 0;
 }
 

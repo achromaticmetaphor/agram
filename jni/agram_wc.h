@@ -5,10 +5,12 @@
 
 #include "lcwc.h"
 
+#include <jni.h>
+
 extern struct lc * words_counts;
 extern size_t NWORDS;
-extern char * strbase;
-extern char * charsbase;
+extern jint * strbase;
+extern jint * charsbase;
 extern unsigned int * countsbase;
 
 void unload_wl(void);

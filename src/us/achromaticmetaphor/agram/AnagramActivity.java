@@ -56,7 +56,7 @@ public class AnagramActivity extends Activity {
   }
 
   private void fixin(EditText et) {
-    input = et.getText().toString().toLowerCase().replaceAll("[^abcdefghijklmnopqrstuvwxyz1234567890]", "");
+    input = et.getText().toString();
   }
 
   public void promptCharacters() {

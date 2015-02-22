@@ -8,7 +8,7 @@
 #include <jni.h>
 #include "jnihelp.h"
 
-static size_t anagram_generate(const char * const str, const char * out[])
+static size_t anagram_generate(const jint * const str, const jint * out[])
 {
   size_t i;
   size_t j = 0;
@@ -23,13 +23,13 @@ static size_t anagram_generate(const char * const str, const char * out[])
 }
 
 JNIEXPORT jobjectArray JNICALL Java_us_achromaticmetaphor_agram_Anagram_generate_1native
-  (JNIEnv * const env, const jclass class, const jstring string)
+  (JNIEnv * const env, const jclass class, const jintArray string)
 {
-  const char * * const tmp = malloc(sizeof(*tmp) * NWORDS);
-  const char * const str = tmp ? (*env)->GetStringUTFChars(env, string, NULL) : NULL;
+  const jint * * const tmp = malloc(sizeof(*tmp) * NWORDS);
+  jint * const str = tmp ? (*env)->GetIntArrayElements(env, string, NULL) : NULL;
   const size_t len = str ? anagram_generate(str, tmp) : 0;
   if (str)
-    (*env)->ReleaseStringUTFChars(env, string, str);
+    (*env)->ReleaseIntArrayElements(env, string, str, JNI_ABORT);
   const jobjectArray array = arr2jarr(env, tmp, len);
   free(tmp);
   return array;

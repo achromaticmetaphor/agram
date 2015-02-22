@@ -8,18 +8,19 @@
 #include <unistd.h>
 
 #include "agram_wc.h"
+#include "astr.h"
 #include "lcwc.h"
 #include "lettercounts.h"
 
 #include <jni.h>
 #include "jnihelp.h"
 
-static size_t wllen(const char * const words[], const size_t nwords)
+static size_t wllen(const jint * const words[], const size_t nwords)
 {
   size_t sum = 0;
   size_t i;
   for (i = 0; i < nwords; i++)
-    sum += strlen(words[i]) + 1;
+    sum += astrlen(words[i]) + 1;
   return sum;
 }
 
@@ -31,7 +32,7 @@ static void * mapping(const char * const fn, const size_t len)
   return mapping;
 }
 
-static jboolean compile_wl(const char * const words[], const size_t NWORDS, const char * const outfn)
+static jboolean compile_wl(const jint * const words[], const size_t NWORDS, const char * const outfn)
 {
   const int fd = creat(outfn, S_IRUSR);
   if (write(fd, &NWORDS, sizeof(NWORDS)) != sizeof(NWORDS) || fsync(fd) || close(fd))
@@ -45,7 +46,7 @@ static jboolean compile_wl(const char * const words[], const size_t NWORDS, cons
 
   const size_t len = wllen(words, NWORDS);
   sprintf(fne, "%s.s", outfn);
-  char * const str = mapping(fne, len);
+  jint * const str = mapping(fne, sizeof(*str) * len);
   if (str == MAP_FAILED)
     {
       munmap(index, sizeof(*index) * NWORDS);
@@ -53,7 +54,7 @@ static jboolean compile_wl(const char * const words[], const size_t NWORDS, cons
     }
 
   sprintf(fne, "%s.c", outfn);
-  char * const chars = mapping(fne, len);
+  jint * const chars = mapping(fne, sizeof(*chars) * len);
   if (chars == MAP_FAILED)
     {
       munmap(str, len);
@@ -76,12 +77,12 @@ static jboolean compile_wl(const char * const words[], const size_t NWORDS, cons
   size_t i;
   for (i = 0; i < NWORDS; i++)
     {
-      index[i].len = strlen(words[i]);
+      index[i].len = astrlen(words[i]);
       lettercounts(counts + charsoff, chars + charsoff, words[i]);
-      index[i].nchars = strlen(chars + charsoff);
+      index[i].nchars = astrlen(chars + charsoff);
       index[i].str = stroff;
       index[i].chars = charsoff;
-      strcpy(str + stroff, words[i]);
+      astrcpy(str + stroff, words[i]);
       stroff += index[i].len + 1;
       charsoff += index[i].nchars + 1;
     }
@@ -99,12 +100,12 @@ static jboolean compile_wl(const char * const words[], const size_t NWORDS, cons
   return JNI_TRUE;
 }
 
-JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Native_init__Ljava_lang_String_2_3Ljava_lang_String_2
+JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Native_init__Ljava_lang_String_2_3_3I
   (JNIEnv * const env, jclass const class, jstring const jfn, jobjectArray const jwords)
 {
   size_t nwords;
   const char * const fn = (*env)->GetStringUTFChars(env, jfn, 0);
-  const char * * const words = fn ? jarr2arr(env, jwords, &nwords) : 0;
+  const jint * * const words = fn ? jarr2arr(env, jwords, &nwords) : 0;
   const int compile_failed = words ? ! compile_wl(words, nwords, fn) : 1;
   const int load_failed = compile_failed ? 1 : load_wl(fn);
   if (words)
