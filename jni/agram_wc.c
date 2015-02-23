@@ -10,12 +10,12 @@
 
 #include <jni.h>
 
-size_t NWORDS = 0;
+jint NWORDS = 0;
 
 struct lc * words_counts;
 static size_t words_counts_len = 0;
 
-jint * strbase;
+jchar * strbase;
 static size_t strbase_len = 0;
 
 jint * charsbase;

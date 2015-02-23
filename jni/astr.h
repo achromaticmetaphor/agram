@@ -6,7 +6,7 @@
 #include <jni.h>
 
 size_t astrlen(jint const *);
-void astrcpy(jint *, const jint *);
-jint * astrdup(jint const *);
+void uastrcpy(jint *, const jchar *, jsize);
+jchar * ustrdup(jchar const *, jsize);
 
 #endif

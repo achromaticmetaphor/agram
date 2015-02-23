@@ -51,18 +51,17 @@ void wc_free(struct wc * const del)
   free(del->counts);
 }
 
-int wc_init (struct wc * const target, const jint * const str)
+int wc_init(struct wc * const target, const jchar * const str, const jsize slen)
 {
-  target->str = astrdup(str);
+  target->str = ustrdup(str, slen);
   if (! target->str)
     return 1;
-  target->len = astrlen(str);
+  target->len = slen;
   target->chars = malloc(sizeof(*target->chars) * (target->len + 1));
   target->counts = malloc(sizeof(*target->counts) * (target->len + 1));
   if ((! target->chars) || (! target->counts))
     return wc_free(target), 1;
-  lettercounts(target->counts, target->chars, str);
-  target->nchars = astrlen(target->chars);
+  target->nchars = lettercounts(target->counts, target->chars, str, slen);
   return 0;
 }
 

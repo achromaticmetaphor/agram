@@ -13,14 +13,17 @@
 #include "lettercounts.h"
 
 #include <jni.h>
-#include "jnihelp.h"
 
-static size_t wllen(const jint * const words[], const size_t nwords)
+static size_t wllen(JNIEnv * const env, jobjectArray const jwords, jsize const nwords)
 {
   size_t sum = 0;
   size_t i;
   for (i = 0; i < nwords; i++)
-    sum += astrlen(words[i]) + 1;
+    {
+      jstring const string = (*env)->GetObjectArrayElement(env, jwords, i);
+      sum += (*env)->GetStringLength(env, string);
+      (*env)->DeleteLocalRef(env, string);
+    }
   return sum;
 }
 
@@ -32,8 +35,10 @@ static void * mapping(const char * const fn, const size_t len)
   return mapping;
 }
 
-static jboolean compile_wl(const jint * const words[], const size_t NWORDS, const char * const outfn)
+static jboolean compile_wl(JNIEnv * const env, jobjectArray const jwords, const char * const outfn)
 {
+  const jsize NWORDS = (*env)->GetArrayLength(env, jwords);
+
   const int fd = creat(outfn, S_IRUSR);
   if (write(fd, &NWORDS, sizeof(NWORDS)) != sizeof(NWORDS) || fsync(fd) || close(fd))
     return JNI_FALSE;
@@ -44,9 +49,9 @@ static jboolean compile_wl(const jint * const words[], const size_t NWORDS, cons
   if (index == MAP_FAILED)
     return JNI_FALSE;
 
-  const size_t len = wllen(words, NWORDS);
+  const size_t len = wllen(env, jwords, NWORDS);
   sprintf(fne, "%s.s", outfn);
-  jint * const str = mapping(fne, sizeof(*str) * len);
+  jchar * const str = mapping(fne, sizeof(*str) * len);
   if (str == MAP_FAILED)
     {
       munmap(index, sizeof(*index) * NWORDS);
@@ -77,14 +82,15 @@ static jboolean compile_wl(const jint * const words[], const size_t NWORDS, cons
   size_t i;
   for (i = 0; i < NWORDS; i++)
     {
-      index[i].len = astrlen(words[i]);
-      lettercounts(counts + charsoff, chars + charsoff, words[i]);
-      index[i].nchars = astrlen(chars + charsoff);
+      jstring const string = (*env)->GetObjectArrayElement(env, jwords, i);
+      index[i].len = (*env)->GetStringLength(env, string);
+      (*env)->GetStringRegion(env, string, 0, index[i].len, str + stroff);
+      (*env)->DeleteLocalRef(env, string);
+      index[i].nchars = lettercounts(counts + charsoff, chars + charsoff, str + stroff, index[i].len);
       index[i].str = stroff;
       index[i].chars = charsoff;
-      astrcpy(str + stroff, words[i]);
-      stroff += index[i].len + 1;
-      charsoff += index[i].nchars + 1;
+      stroff += index[i].len;
+      charsoff += index[i].nchars;
     }
 
   munmap(index, sizeof(*index) * NWORDS);
@@ -100,16 +106,12 @@ static jboolean compile_wl(const jint * const words[], const size_t NWORDS, cons
   return JNI_TRUE;
 }
 
-JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Native_init__Ljava_lang_String_2_3_3I
+JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Native_init__Ljava_lang_String_2_3Ljava_lang_String_2
   (JNIEnv * const env, jclass const class, jstring const jfn, jobjectArray const jwords)
 {
-  size_t nwords;
   const char * const fn = (*env)->GetStringUTFChars(env, jfn, 0);
-  const jint * * const words = fn ? jarr2arr(env, jwords, &nwords) : 0;
-  const int compile_failed = words ? ! compile_wl(words, nwords, fn) : 1;
+  const int compile_failed = fn ? ! compile_wl(env, jwords, fn) : 1;
   const int load_failed = compile_failed ? 1 : load_wl(fn);
-  if (words)
-    free_jarr(env, jwords, words);
   if (fn)
     (*env)->ReleaseStringUTFChars(env, jfn, fn);
   return load_failed ? JNI_FALSE : JNI_TRUE;

@@ -2,10 +2,12 @@ package us.achromaticmetaphor.agram;
 
 import android.os.AsyncTask;
 
-public class AsyncGenerate extends AsyncTask<String, Void, String [] []> {
+import java.util.List;
+
+public class AsyncGenerate extends AsyncTask<String, Void, List<String> []> {
 
   public interface Listener {
-    public void onFinished(String [] result);
+    public void onFinished(List<String> result);
   }
 
   private Generator gen;
@@ -27,16 +29,16 @@ public class AsyncGenerate extends AsyncTask<String, Void, String [] []> {
   }
 
   @Override
-  protected String [] [] doInBackground(String... s) {
-    String [] [] results = new String [s.length] [];
+  protected List<String> [] doInBackground(String... s) {
+    List<String> [] results = new List [s.length];
     for (int i = 0; i < results.length; i++)
       results[i] = bset ? gen.generate(s[i], b) : gen.generate(s[i]);
     return results;
   }
 
   @Override
-  protected void onPostExecute(String [] [] list) {
-    for (String [] l : list)
+  protected void onPostExecute(List<String> [] list) {
+    for (List<String> l : list)
       listen.onFinished(l);
   }
 

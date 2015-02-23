@@ -3,6 +3,6 @@
 
 #include <jni.h>
 
-void lettercounts(unsigned int [], jint [], const jint *);
+size_t lettercounts(unsigned int [], jint [], const jchar *, jsize);
 
 #endif

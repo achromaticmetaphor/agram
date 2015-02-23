@@ -8,8 +8,8 @@
 #include <jni.h>
 
 extern struct lc * words_counts;
-extern size_t NWORDS;
-extern jint * strbase;
+extern jint NWORDS;
+extern jchar * strbase;
 extern jint * charsbase;
 extern unsigned int * countsbase;
 

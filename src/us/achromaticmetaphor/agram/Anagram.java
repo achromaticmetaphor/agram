@@ -1,14 +1,12 @@
 package us.achromaticmetaphor.agram;
 
+import java.util.List;
+
 public class Anagram implements Generator {
 
-  private static native int [] [] generate_native(int [] s);
+  public native List<String> generate(String s);
 
-  public String [] generate(String s) {
-    return Native.codepoints(generate_native(Native.codepoints(s)));
-  }
-
-  public String [] generate(String s, boolean b) {
+  public List<String> generate(String s, boolean b) {
     return generate(s);
   }
 

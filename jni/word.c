@@ -2,13 +2,10 @@
 
 #include <jni.h>
 
-JNIEXPORT jintArray JNICALL Java_us_achromaticmetaphor_agram_Word_pick_1native
+JNIEXPORT jstring JNICALL Java_us_achromaticmetaphor_agram_Word_pick_1native
   (JNIEnv * const env, const jclass class, const jint n)
 {
-  jintArray const s = (*env)->NewIntArray(env, words_counts[n].len + 1);
-  if (s)
-    (*env)->SetIntArrayRegion(env, s, 0, words_counts[n].len + 1, words_counts[n].str + strbase);
-  return s;
+  return (*env)->NewString(env, words_counts[n].str + strbase, words_counts[n].len);
 }
 
 JNIEXPORT jint JNICALL Java_us_achromaticmetaphor_agram_Word_get_1nwords

@@ -1,15 +1,16 @@
 package us.achromaticmetaphor.agram;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 public class Anagrams implements Generator {
 
-  private static native int [] [] generate_native(int [] s, boolean full);
+  private static native List<String> generate_native(String s);
 
-  public String [] generate(String s, boolean full) {
-    String [] out = Native.codepoints(generate_native(Native.codepoints(s), full));
-    Arrays.sort(out, new Comparator<String>() {
+  public List<String> generate(String s) {
+    List<String> out = generate_native(s);
+    Collections.sort(out, new Comparator<String>() {
       public int compare(String a, String b) {
         return a.length() < b.length() ? -1 : a.length() > b.length() ? 1 : 0;
       }
@@ -17,13 +18,13 @@ public class Anagrams implements Generator {
     return out;
   }
 
-  public String [] generate(String s) {
-    return generate(s, false);
+  public List<String> generate(String s, boolean full) {
+    return generate(s);
   }
 
-  public boolean hasLongMode() { return true; }
-  public String longLabel() { return "With permutations"; }
-  public String shortLabel() { return "Without permutations"; }
+  public boolean hasLongMode() { return false; }
+  public String longLabel() { return ""; }
+  public String shortLabel() { return "Generate"; }
   public String inputPrompt() { return "Choose characters"; }
 
 }

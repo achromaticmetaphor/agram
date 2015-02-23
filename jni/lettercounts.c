@@ -22,7 +22,7 @@ static int wccmp(const void * const va, const void * const vb)
   return *a < *b ? -1 : *a != *b;
 }
 
-void lettercounts(unsigned int counts[], jint letters[], const jint * const str)
+static size_t lettercounts_s(unsigned int counts[], jint letters[], const jint * const str)
 {
   size_t i;
   const jint * s;
@@ -42,6 +42,12 @@ void lettercounts(unsigned int counts[], jint letters[], const jint * const str)
           counts[i]++;
     }
 
-  counts[nmemb] = 0;
-  letters[nmemb] = 0;
+  return nmemb;
+}
+
+size_t lettercounts(unsigned int counts[], jint letters[], const jchar * const str, const jsize slen)
+{
+  jint tmp[slen+1];
+  uastrcpy(tmp, str, slen);
+  return lettercounts_s(counts, letters, tmp);
 }
