@@ -31,12 +31,11 @@ static int putout(const int fd, const void * buf, size_t len)
   return 0;
 }
 
-static jboolean compile_wl(JNIEnv * const env, jobjectArray const jwords, const char * const outfn)
+static jboolean compile_wl(JNIEnv * const env, jobject const jwords, const char * const outfn)
 {
-  const jsize NWORDS = (*env)->GetArrayLength(env, jwords);
-
-  const int fd = creat(outfn, S_IRUSR);
-  if (putout(fd, &NWORDS, sizeof(NWORDS)) | fsync(fd) | close(fd))
+  jclass const bufread = (*env)->FindClass(env, "java/io/BufferedReader");
+  jmethodID const readline = bufread ? (*env)->GetMethodID(env, bufread, "readLine", "()Ljava/lang/String;") : NULL;
+  if (! readline)
     return JNI_FALSE;
 
   char fne[strlen(outfn)+3];
@@ -48,37 +47,30 @@ static jboolean compile_wl(JNIEnv * const env, jobjectArray const jwords, const 
   sprintf(fne, "%s.s", outfn);
   const int fds = creat(fne, S_IRUSR);
   if (fds == -1)
-    {
-      close(fdi);
-      return JNI_FALSE;
-    }
+    goto fail_i;
 
   sprintf(fne, "%s.c", outfn);
   const int fdc = creat(fne, S_IRUSR);
   if (fdc == -1)
-    {
-      close(fds);
-      close(fdi);
-      return JNI_FALSE;
-    }
+    goto fail_s;
 
   sprintf(fne, "%s.n", outfn);
   const int fdn = creat(fne, S_IRUSR);
   if (fdn == -1)
-    {
-      close(fdc);
-      close(fds);
-      close(fdi);
-      return JNI_FALSE;
-    }
+    goto fail_c;
 
+  jint NWORDS = 0;
   size_t stroff = 0;
   size_t charsoff = 0;
-  size_t i;
-  for (i = 0; i < NWORDS; i++)
+  while (1)
     {
       struct lc index;
-      jstring const string = (*env)->GetObjectArrayElement(env, jwords, i);
+      jstring const string = (*env)->CallObjectMethod(env, jwords, readline);
+      if ((*env)->ExceptionCheck(env) == JNI_TRUE)
+        goto fail_n;
+      if (! string)
+        break;
+      NWORDS++;
       index.len = (*env)->GetStringLength(env, string);
       jchar str[index.len];
       jint counts[index.len];
@@ -95,13 +87,7 @@ static jboolean compile_wl(JNIEnv * const env, jobjectArray const jwords, const 
        || putout(fds, str, sizeof(str))
        || putout(fdc, chars, sizeof(*chars) * index.nchars)
        || putout(fdn, counts, sizeof(*counts) * index.nchars))
-        {
-          close(fdn);
-          close(fdc);
-          close(fds);
-          close(fdi);
-          return JNI_FALSE;
-        }
+        goto fail_n;
     }
 
   if (fsync(fdn) | close(fdn)
@@ -110,16 +96,30 @@ static jboolean compile_wl(JNIEnv * const env, jobjectArray const jwords, const 
     | fsync(fdi) | close(fdi))
     return JNI_FALSE;
 
+  const int fd = creat(outfn, S_IRUSR);
+  if (putout(fd, &NWORDS, sizeof(NWORDS)) | fsync(fd) | close(fd))
+    return JNI_FALSE;
+
   sprintf(fne, "%s.k", outfn);
   const int fdk = creat(fne, S_IRUSR);
   fsync(fdk);
   close(fdk);
 
   return JNI_TRUE;
+
+fail_n:
+  close(fdn);
+fail_c:
+  close(fdc);
+fail_s:
+  close(fds);
+fail_i:
+  close(fdi);
+  return JNI_FALSE;
 }
 
-JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Native_init__Ljava_lang_String_2_3Ljava_lang_String_2
-  (JNIEnv * const env, jclass const class, jstring const jfn, jobjectArray const jwords)
+JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Native_init__Ljava_lang_String_2Ljava_io_BufferedReader_2
+  (JNIEnv * const env, jclass const class, jstring const jfn, jobject const jwords)
 {
   const char * const fn = (*env)->GetStringUTFChars(env, jfn, 0);
   const int compile_failed = fn ? ! compile_wl(env, jwords, fn) : 1;

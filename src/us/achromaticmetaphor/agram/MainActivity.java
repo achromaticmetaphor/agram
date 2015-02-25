@@ -13,11 +13,11 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.io.StringReader;
 
 public class MainActivity extends Activity {
 
@@ -45,15 +45,11 @@ public class MainActivity extends Activity {
         if (new File(getFilesDir(), "wordlist.k").exists())
           Native.init(new File(getFilesDir(), "wordlist").getAbsolutePath());
         else {
-          List<String> words = new ArrayList<String>();
           try {
-            Scanner wordscan = new Scanner(getResources().getAssets().open("words"));
-            while (wordscan.hasNext())
-              words.add(wordscan.next());
-            Native.init(new File(getFilesDir(), "wordlist").getAbsolutePath(), words.toArray(new String [0]));
+            Native.init(new File(getFilesDir(), "wordlist").getAbsolutePath(), new BufferedReader(new InputStreamReader(getResources().getAssets().open("words"))));
           }
           catch (IOException ioe) {
-            Native.init(new File(getFilesDir(), "NULL").getAbsolutePath(), new String [0]);
+            Native.init(new File(getFilesDir(), "NULL").getAbsolutePath(), new BufferedReader(new StringReader("")));
           }
         }
         return null;
