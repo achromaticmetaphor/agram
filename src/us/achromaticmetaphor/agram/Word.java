@@ -17,8 +17,11 @@ public class Word {
 
   public static List<String> pick(int n) {
     List<String> words = new ArrayList<String>(n);
-    for (int i = 0; i < n; i++)
-      words.add(pick());
+    try {
+      for (int i = 0; i < n; i++)
+        words.add(pick());
+    }
+      catch (IllegalArgumentException iae) {}
     return words;
   }
 
