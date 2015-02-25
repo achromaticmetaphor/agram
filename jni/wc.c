@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <fcntl.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -14,25 +15,20 @@
 
 #include <jni.h>
 
-static size_t wllen(JNIEnv * const env, jobjectArray const jwords, jsize const nwords)
+static int putout(const int fd, const void * buf, size_t len)
 {
-  size_t sum = 0;
-  size_t i;
-  for (i = 0; i < nwords; i++)
+  while (len)
     {
-      jstring const string = (*env)->GetObjectArrayElement(env, jwords, i);
-      sum += (*env)->GetStringLength(env, string);
-      (*env)->DeleteLocalRef(env, string);
+      const ssize_t written = write(fd, buf, len);
+      if (written == -1)
+        if (errno == EINTR)
+          continue;
+        else
+          return 1;
+      len -= written;
+      buf = (char *) buf + written;
     }
-  return sum;
-}
-
-static void * mapping(const char * const fn, const size_t len)
-{
-  const int fd = open(fn, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR);
-  void * const mapping = ftruncate(fd, len) ? MAP_FAILED : mmap(0, len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-  close(fd);
-  return mapping;
+  return 0;
 }
 
 static jboolean compile_wl(JNIEnv * const env, jobjectArray const jwords, const char * const outfn)
@@ -40,40 +36,39 @@ static jboolean compile_wl(JNIEnv * const env, jobjectArray const jwords, const 
   const jsize NWORDS = (*env)->GetArrayLength(env, jwords);
 
   const int fd = creat(outfn, S_IRUSR);
-  if (write(fd, &NWORDS, sizeof(NWORDS)) != sizeof(NWORDS) || fsync(fd) || close(fd))
+  if (putout(fd, &NWORDS, sizeof(NWORDS)) | fsync(fd) | close(fd))
     return JNI_FALSE;
 
   char fne[strlen(outfn)+3];
   sprintf(fne, "%s.i", outfn);
-  struct lc * const index = mapping(fne, sizeof(*index) * NWORDS);
-  if (index == MAP_FAILED)
+  const int fdi = creat(fne, S_IRUSR);
+  if (fdi == -1)
     return JNI_FALSE;
 
-  const size_t len = wllen(env, jwords, NWORDS);
   sprintf(fne, "%s.s", outfn);
-  jchar * const str = mapping(fne, sizeof(*str) * len);
-  if (str == MAP_FAILED)
+  const int fds = creat(fne, S_IRUSR);
+  if (fds == -1)
     {
-      munmap(index, sizeof(*index) * NWORDS);
+      close(fdi);
       return JNI_FALSE;
     }
 
   sprintf(fne, "%s.c", outfn);
-  jint * const chars = mapping(fne, sizeof(*chars) * len);
-  if (chars == MAP_FAILED)
+  const int fdc = creat(fne, S_IRUSR);
+  if (fdc == -1)
     {
-      munmap(str, len);
-      munmap(index, sizeof(*index) * NWORDS);
+      close(fds);
+      close(fdi);
       return JNI_FALSE;
     }
 
   sprintf(fne, "%s.n", outfn);
-  unsigned int * const counts = mapping(fne, len * sizeof(*counts));
-  if (counts == MAP_FAILED)
+  const int fdn = creat(fne, S_IRUSR);
+  if (fdn == -1)
     {
-      munmap(chars, len);
-      munmap(str, len);
-      munmap(index, sizeof(*index) * NWORDS);
+      close(fdc);
+      close(fds);
+      close(fdi);
       return JNI_FALSE;
     }
 
@@ -82,21 +77,38 @@ static jboolean compile_wl(JNIEnv * const env, jobjectArray const jwords, const 
   size_t i;
   for (i = 0; i < NWORDS; i++)
     {
+      struct lc index;
       jstring const string = (*env)->GetObjectArrayElement(env, jwords, i);
-      index[i].len = (*env)->GetStringLength(env, string);
-      (*env)->GetStringRegion(env, string, 0, index[i].len, str + stroff);
+      index.len = (*env)->GetStringLength(env, string);
+      jchar str[index.len];
+      jint counts[index.len];
+      jint chars[index.len];
+      (*env)->GetStringRegion(env, string, 0, index.len, str);
       (*env)->DeleteLocalRef(env, string);
-      index[i].nchars = lettercounts(counts + charsoff, chars + charsoff, str + stroff, index[i].len);
-      index[i].str = stroff;
-      index[i].chars = charsoff;
-      stroff += index[i].len;
-      charsoff += index[i].nchars;
+      index.nchars = lettercounts(counts, chars, str, index.len);
+      index.str = stroff;
+      index.chars = charsoff;
+      stroff += index.len;
+      charsoff += index.nchars;
+
+      if (putout(fdi, &index, sizeof(index))
+       || putout(fds, str, sizeof(str))
+       || putout(fdc, chars, sizeof(*chars) * index.nchars)
+       || putout(fdn, counts, sizeof(*counts) * index.nchars))
+        {
+          close(fdn);
+          close(fdc);
+          close(fds);
+          close(fdi);
+          return JNI_FALSE;
+        }
     }
 
-  munmap(index, sizeof(*index) * NWORDS);
-  munmap(str, len);
-  munmap(chars, len);
-  munmap(counts, len * sizeof(*counts));
+  if (fsync(fdn) | close(fdn)
+    | fsync(fdc) | close(fdc)
+    | fsync(fds) | close(fds)
+    | fsync(fdi) | close(fdi))
+    return JNI_FALSE;
 
   sprintf(fne, "%s.k", outfn);
   const int fdk = creat(fne, S_IRUSR);
