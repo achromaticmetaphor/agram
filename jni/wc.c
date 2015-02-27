@@ -72,6 +72,8 @@ static jboolean compile_wl(JNIEnv * const env, jobject const jwords, const char 
         break;
       NWORDS++;
       index.len = (*env)->GetStringLength(env, string);
+      if (index.len == 0)
+        continue;
       jchar str[index.len];
       jint counts[index.len];
       jint chars[index.len];
