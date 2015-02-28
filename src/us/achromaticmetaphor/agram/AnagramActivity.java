@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.text.Normalizer;
 
 public class AnagramActivity extends Activity {
 
@@ -60,6 +61,8 @@ public class AnagramActivity extends Activity {
 
   private void fixin(EditText et) {
     input = et.getText().toString();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD)
+      input = Normalizer.normalize(input, Normalizer.Form.NFC);
   }
 
   public void promptCharacters() {

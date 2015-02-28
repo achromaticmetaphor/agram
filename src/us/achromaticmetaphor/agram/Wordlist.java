@@ -40,14 +40,8 @@ public class Wordlist {
       protected Boolean doInBackground(Void... v) {
         if (new File(con.getFilesDir(), filename + ".k").exists())
           return Native.init(new File(con.getFilesDir(), filename).getAbsolutePath());
-        else {
-          try {
-            return Native.init(new File(con.getFilesDir(), filename).getAbsolutePath(), new BufferedReader(new InputStreamReader(in)));
-          }
-          catch (IOException ioe) {
-            return false;
-          }
-        }
+        else
+          return Native.init(new File(con.getFilesDir(), filename).getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
       }
       protected void onPostExecute(Boolean b) {
         pdia.dismiss();

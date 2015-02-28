@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.text.Normalizer;
 
 public class MainActivity extends Activity {
 
@@ -185,7 +186,10 @@ public class MainActivity extends Activity {
       build.setView(edit);
       build.setPositiveButton("OK", new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface di, int i) {
-          loadWordlist(filename, edit.getText().toString());
+          String label = edit.getText().toString();
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD)
+            label = Normalizer.normalize(label, Normalizer.Form.NFC);
+          loadWordlist(filename, label);
         }
       });
       build.setNegativeButton("Cancel", null);

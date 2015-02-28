@@ -33,9 +33,9 @@ static int putout(const int fd, const void * buf, size_t len)
 
 static jboolean compile_wl(JNIEnv * const env, jobject const jwords, const char * const outfn)
 {
-  jclass const bufread = (*env)->FindClass(env, "java/io/BufferedReader");
-  jmethodID const readline = bufread ? (*env)->GetMethodID(env, bufread, "readLine", "()Ljava/lang/String;") : NULL;
-  if (! readline)
+  jclass const wlreader = (*env)->FindClass(env, "us/achromaticmetaphor/agram/WordlistReader");
+  jmethodID const read = wlreader ? (*env)->GetMethodID(env, wlreader, "read", "()Ljava/lang/String;") : NULL;
+  if (! read)
     return JNI_FALSE;
 
   char fne[strlen(outfn)+3];
@@ -62,18 +62,12 @@ static jboolean compile_wl(JNIEnv * const env, jobject const jwords, const char 
   jint NWORDS = 0;
   size_t stroff = 0;
   size_t charsoff = 0;
-  while (1)
+  jstring string;
+  while (string = (*env)->CallObjectMethod(env, jwords, read))
     {
       struct lc index;
-      jstring const string = (*env)->CallObjectMethod(env, jwords, readline);
-      if ((*env)->ExceptionCheck(env) == JNI_TRUE)
-        goto fail_n;
-      if (! string)
-        break;
       NWORDS++;
       index.len = (*env)->GetStringLength(env, string);
-      if (index.len == 0)
-        continue;
       jchar str[index.len];
       jint counts[index.len];
       jint chars[index.len];
@@ -120,7 +114,7 @@ fail_i:
   return JNI_FALSE;
 }
 
-JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Native_init__Ljava_lang_String_2Ljava_io_BufferedReader_2
+JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Native_init__Ljava_lang_String_2Lus_achromaticmetaphor_agram_WordlistReader_2
   (JNIEnv * const env, jclass const class, jstring const jfn, jobject const jwords)
 {
   const char * const fn = (*env)->GetStringUTFChars(env, jfn, 0);
