@@ -66,6 +66,7 @@ static void * omap(const char * const fn, size_t * const len)
 
 int load_wl(const char * const fn)
 {
+  unload_wl();
   const int fd = open(fn, O_RDONLY);
   if (fd == -1)
     return 1;
