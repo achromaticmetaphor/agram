@@ -51,7 +51,10 @@ public class AnagramActivity extends Activity {
   private void share() {
     StringBuilder sb = new StringBuilder();
     for (String s : shareList)
-      sb.append(s).append("\n");
+      if (sb.length() >= 102400)
+        break;
+      else
+        sb.append(s).append("\n");
     Intent send = new Intent();
     send.setAction(Intent.ACTION_SEND);
     send.putExtra(Intent.EXTRA_TEXT, sb.toString());
