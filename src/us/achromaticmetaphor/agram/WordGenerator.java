@@ -1,10 +1,10 @@
 package us.achromaticmetaphor.agram;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class WordGenerator implements Generator, Refreshable {
 
-  public List<String> generate(String s) {
+  public ArrayList<String> generate(String s) {
     int n = 1;
     try {
       n = Integer.parseInt(s);
@@ -13,7 +13,7 @@ public class WordGenerator implements Generator, Refreshable {
     return Word.pick(n);
   }
 
-  public List<String> generate(String s, boolean b) {
+  public ArrayList<String> generate(String s, boolean b) {
     return generate(s);
   }
 

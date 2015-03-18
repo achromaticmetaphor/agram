@@ -1,11 +1,11 @@
 package us.achromaticmetaphor.agram;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.ArrayList;
 
 interface Generator extends Serializable {
-  public List<String> generate(String s);
-  public List<String> generate(String s, boolean lng);
+  public ArrayList<String> generate(String s);
+  public ArrayList<String> generate(String s, boolean lng);
   public boolean hasLongMode();
   public String longLabel();
   public String shortLabel();

@@ -26,20 +26,31 @@ public class AnagramActivity extends Activity {
 
   private Generator gen;
   private String input = "";
-  private List<String> shareList = new ArrayList<String>();
+  private ArrayList<String> shareList;
 
   @Override
   protected void onCreate(Bundle state) {
     super.onCreate(state);
     setContentView(R.layout.activity_listview);
     gen = (Generator) getIntent().getSerializableExtra("generator");
-    promptCharacters();
+    shareList = state == null ? null : state.getStringArrayList("shareList");
+    input = state == null ? "" : state.getString("input");
+    if (input == null)
+      input = "";
+    if (shareList == null) {
+      shareList = new ArrayList<String>();
+      promptCharacters();
+    }
+    else {
+      ArrayAdapter adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, shareList);
+      ((ListView) findViewById(R.id.cmdlist)).setAdapter(adapter);
+    }
   }
 
   public void refresh(boolean lng) {
     final ProgressDialog pdia = ProgressDialog.show(AnagramActivity.this, "Generating", "Please wait", true, false);
     (new AsyncGenerate(gen, lng, new AsyncGenerate.Listener() {
-      public void onFinished(List<String> result) {
+      public void onFinished(ArrayList<String> result) {
         ArrayAdapter adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, result);
         ((ListView) findViewById(R.id.cmdlist)).setAdapter(adapter);
         shareList = result;
@@ -127,6 +138,12 @@ public class AnagramActivity extends Activity {
     if (mi.getTitle().equals("Share"))
       share();
     return true;
+  }
+
+  @Override
+  protected void onSaveInstanceState(Bundle state) {
+    state.putStringArrayList("shareList", shareList);
+    state.putString("input", input);
   }
 
   private static class MonoAdapter extends ArrayAdapter<String> {

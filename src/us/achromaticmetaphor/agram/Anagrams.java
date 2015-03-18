@@ -2,14 +2,14 @@ package us.achromaticmetaphor.agram;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.ArrayList;
 
 public class Anagrams implements Generator {
 
-  private static native List<String> generate_native(String s);
+  private static native ArrayList<String> generate_native(String s);
 
-  public List<String> generate(String s) {
-    List<String> out = generate_native(s);
+  public ArrayList<String> generate(String s) {
+    ArrayList<String> out = generate_native(s);
     Collections.sort(out, new Comparator<String>() {
       public int compare(String a, String b) {
         return a.length() < b.length() ? -1 : a.length() > b.length() ? 1 : 0;
@@ -18,7 +18,7 @@ public class Anagrams implements Generator {
     return out;
   }
 
-  public List<String> generate(String s, boolean full) {
+  public ArrayList<String> generate(String s, boolean full) {
     return generate(s);
   }
 

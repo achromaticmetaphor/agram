@@ -1,7 +1,6 @@
 package us.achromaticmetaphor.agram;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class Word {
@@ -15,8 +14,8 @@ public class Word {
     return pick_native(random.nextInt(get_nwords()));
   }
 
-  public static List<String> pick(int n) {
-    List<String> words = new ArrayList<String>(n);
+  public static ArrayList<String> pick(int n) {
+    ArrayList<String> words = new ArrayList<String>(n);
     try {
       for (int i = 0; i < n; i++)
         words.add(pick());

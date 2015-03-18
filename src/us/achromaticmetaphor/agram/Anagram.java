@@ -1,12 +1,12 @@
 package us.achromaticmetaphor.agram;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class Anagram implements Generator {
 
-  public native List<String> generate(String s);
+  public native ArrayList<String> generate(String s);
 
-  public List<String> generate(String s, boolean b) {
+  public ArrayList<String> generate(String s, boolean b) {
     return generate(s);
   }
 
