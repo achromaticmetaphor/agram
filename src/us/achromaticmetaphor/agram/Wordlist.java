@@ -15,14 +15,22 @@ import java.security.NoSuchAlgorithmException;
 
 public class Wordlist {
 
+  static {
+    Native.load();
+  }
+
   public interface OnCompleteListener {
     public void onComplete(boolean success);
   }
 
+  private static native byte [] platform();
+
   public static String transformLabel(String label) {
     try {
       MessageDigest dig = MessageDigest.getInstance("SHA-256");
-      return Base64.encodeToString(dig.digest(label.getBytes()), Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
+      dig.update(platform());
+      dig.update(label.getBytes());
+      return Base64.encodeToString(dig.digest(), Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
     }
     catch (NoSuchAlgorithmException nsae) {
       return label;
@@ -38,10 +46,12 @@ public class Wordlist {
     final ProgressDialog pdia = ProgressDialog.show(con, "Loading word list", "Please wait", true, false);
     (new AsyncTask<Void, Void, Boolean>() {
       protected Boolean doInBackground(Void... v) {
-        if (new File(con.getFilesDir(), filename + ".k").exists())
-          return Native.init(new File(con.getFilesDir(), filename).getAbsolutePath());
-        else
-          return Native.init(new File(con.getFilesDir(), filename).getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
+        synchronized (Wordlist.class) {
+          if (new File(con.getFilesDir(), filename + ".k").exists())
+            return Native.init(new File(con.getFilesDir(), filename).getAbsolutePath());
+          else
+            return Native.init(new File(con.getFilesDir(), filename).getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
+        }
       }
       protected void onPostExecute(Boolean b) {
         pdia.dismiss();

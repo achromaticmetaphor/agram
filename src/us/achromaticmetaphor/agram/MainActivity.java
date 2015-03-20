@@ -36,7 +36,7 @@ public class MainActivity extends Activity {
   private static final int REQUEST_FILEBROWSER = 1;
   private static final String builtinWordlist = "SCOWL (built-in)";
   private static final String selectedWordlistKey = "wordlist.label";
-  private static final String wordlistsFilename = "wordlists";
+  private static final String wordlistsFilename = Wordlist.transformLabel("wordlists");
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +54,10 @@ public class MainActivity extends Activity {
       }
     });
     SharedPreferences prefs = getSharedPreferences("us.achromaticmetaphor.agram", MODE_PRIVATE);
-    loadWordlist("", prefs.getString(selectedWordlistKey, builtinWordlist));
+    String selectedWordlist = prefs.getString(selectedWordlistKey, builtinWordlist);
+    if (! getWordlists().contains(selectedWordlist))
+      selectedWordlist = builtinWordlist;
+    loadWordlist("", selectedWordlist);
   }
 
   private void loadWordlist(String filename, final String label) {
