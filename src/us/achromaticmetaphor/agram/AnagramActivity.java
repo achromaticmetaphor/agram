@@ -27,6 +27,8 @@ public class AnagramActivity extends Activity {
   private Generator gen;
   private String input = "";
   private ArrayList<String> shareList;
+  private ProgressDialog pdia = null;
+  private boolean longMode = false;
 
   @Override
   protected void onCreate(Bundle state) {
@@ -35,9 +37,12 @@ public class AnagramActivity extends Activity {
     gen = (Generator) getIntent().getSerializableExtra("generator");
     shareList = state == null ? null : state.getStringArrayList("shareList");
     input = state == null ? "" : state.getString("input");
+    longMode = state == null ? false : state.getBoolean("longMode");
     if (input == null)
       input = "";
-    if (shareList == null) {
+    if (state != null && state.getBoolean("inprogress"))
+      refresh();
+    else if (shareList == null) {
       shareList = new ArrayList<String>();
       promptCharacters();
     }
@@ -47,14 +52,16 @@ public class AnagramActivity extends Activity {
     }
   }
 
-  public void refresh(boolean lng) {
-    final ProgressDialog pdia = ProgressDialog.show(AnagramActivity.this, "Generating", "Please wait", true, false);
-    (new AsyncGenerate(gen, lng, new AsyncGenerate.Listener() {
+  public void refresh() {
+    pdia = ProgressDialog.show(AnagramActivity.this, "Generating", "Please wait", true, false);
+    (new AsyncGenerate(gen, longMode, new AsyncGenerate.Listener() {
       public void onFinished(ArrayList<String> result) {
         ArrayAdapter adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, result);
         ((ListView) findViewById(R.id.cmdlist)).setAdapter(adapter);
         shareList = result;
-        pdia.dismiss();
+        if (pdia != null)
+          pdia.dismiss();
+        pdia = null;
       }
     })).execute(input);
   }
@@ -89,14 +96,16 @@ public class AnagramActivity extends Activity {
     builder.setPositiveButton(gen.shortLabel(), new DialogInterface.OnClickListener () {
       public void onClick(DialogInterface di, int button) {
         fixin(edit);
-        refresh(false);
+        longMode = false;
+        refresh();
       }
     });
     if (gen.hasLongMode())
       builder.setNeutralButton(gen.longLabel(), new DialogInterface.OnClickListener () {
         public void onClick(DialogInterface di, int button) {
           fixin(edit);
-          refresh(true);
+          longMode = true;
+          refresh();
         }
       });
     builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener () {
@@ -134,7 +143,7 @@ public class AnagramActivity extends Activity {
     if (mi.getTitle().equals("Choose characters"))
       promptCharacters();
     if (mi.getTitle().equals("Refresh"))
-      refresh(false);
+      refresh();
     if (mi.getTitle().equals("Share"))
       share();
     return true;
@@ -144,6 +153,11 @@ public class AnagramActivity extends Activity {
   protected void onSaveInstanceState(Bundle state) {
     state.putStringArrayList("shareList", shareList);
     state.putString("input", input);
+    state.putBoolean("longMode", longMode);
+    if (pdia != null) {
+      state.putBoolean("inprogress", true);
+      pdia = null;
+    }
   }
 
   private static class MonoAdapter extends ArrayAdapter<String> {

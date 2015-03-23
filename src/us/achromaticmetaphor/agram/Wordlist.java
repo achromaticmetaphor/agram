@@ -1,7 +1,5 @@
 package us.achromaticmetaphor.agram;
 
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Base64;
 
@@ -37,24 +35,22 @@ public class Wordlist {
     }
   }
 
-  public static void load(Context con, InputStream in, String label) {
-    load(con, in, label, null);
+  public static void load(File filesDir, InputStream in, String label) {
+    load(filesDir, in, label, null);
   }
 
-  public static void load(final Context con, final InputStream in, String label, final OnCompleteListener listen) {
+  public static void load(final File filesDir, final InputStream in, String label, final OnCompleteListener listen) {
     final String filename = transformLabel(label);
-    final ProgressDialog pdia = ProgressDialog.show(con, "Loading word list", "Please wait", true, false);
     (new AsyncTask<Void, Void, Boolean>() {
       protected Boolean doInBackground(Void... v) {
         synchronized (Wordlist.class) {
-          if (new File(con.getFilesDir(), filename + ".k").exists())
-            return Native.init(new File(con.getFilesDir(), filename).getAbsolutePath());
+          if (new File(filesDir, filename + ".k").exists())
+            return Native.init(new File(filesDir, filename).getAbsolutePath());
           else
-            return Native.init(new File(con.getFilesDir(), filename).getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
+            return Native.init(new File(filesDir, filename).getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
         }
       }
       protected void onPostExecute(Boolean b) {
-        pdia.dismiss();
         if (listen != null)
           listen.onComplete(b);
       }

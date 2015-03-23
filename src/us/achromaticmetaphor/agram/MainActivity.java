@@ -2,6 +2,7 @@ package us.achromaticmetaphor.agram;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -38,6 +39,10 @@ public class MainActivity extends Activity {
   private static final String selectedWordlistKey = "wordlist.label";
   private static final String wordlistsFilename = Wordlist.transformLabel("wordlists");
 
+  private ProgressDialog pdia;
+  private String inprogressFilename;
+  private String inprogressLabel;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -57,17 +62,26 @@ public class MainActivity extends Activity {
     String selectedWordlist = prefs.getString(selectedWordlistKey, builtinWordlist);
     if (! getWordlists().contains(selectedWordlist))
       selectedWordlist = builtinWordlist;
-    loadWordlist("", selectedWordlist);
+    if (savedInstanceState != null && savedInstanceState.getBoolean("inprogress"))
+      loadWordlist(savedInstanceState.getString("inprogressFilename"), savedInstanceState.getString("inprogressLabel"));
+    else
+      loadWordlist("", selectedWordlist);
   }
 
   private void loadWordlist(String filename, final String label) {
+    inprogressFilename = filename;
+    inprogressLabel = label;
+    pdia = ProgressDialog.show(this, "Loading word list", "Please wait", true, false);
     try {
-      Wordlist.load(this, filename.equals("") ? getResources().getAssets().open("words") : new FileInputStream(filename), label, new Wordlist.OnCompleteListener() {
+      Wordlist.load(getFilesDir(), filename.equals("") ? getResources().getAssets().open("words") : new FileInputStream(filename), label, new Wordlist.OnCompleteListener() {
         public void onComplete(boolean success) {
           if (success)
             enrollWordlist(label);
           else
             wordlistFail(label);
+          if (pdia != null)
+            pdia.dismiss();
+          pdia = null;
         }
       });
     }
@@ -111,6 +125,9 @@ public class MainActivity extends Activity {
   }
 
   private void wordlistFail(String label) {
+    if (pdia != null)
+      pdia.dismiss();
+    pdia = null;
     AlertDialog.Builder build = new AlertDialog.Builder(this);
     build.setTitle("Error");
     build.setMessage("Failed to load wordlist: " + label);
@@ -197,6 +214,17 @@ public class MainActivity extends Activity {
       });
       build.setNegativeButton("Cancel", null);
       build.show();
+    }
+  }
+
+  @Override
+  protected void onSaveInstanceState(Bundle state) {
+    if (pdia != null) {
+      state.putBoolean("inprogress", true);
+      state.putString("inprogressFilename", inprogressFilename);
+      state.putString("inprogressLabel", inprogressLabel);
+      pdia.dismiss();
+      pdia = null;
     }
   }
 
