@@ -91,13 +91,3 @@ int load_wl(const char * const fn)
 
   return 0;
 }
-
-JNIEXPORT jbyteArray JNICALL Java_us_achromaticmetaphor_agram_Wordlist_platform
-  (JNIEnv * const env, jclass const class)
-{
-  static const jbyte csizes[] = PLATFORM;
-  jbyteArray sizes = (*env)->NewByteArray(env, sizeof(csizes)/sizeof(*csizes));
-  if (sizes)
-    (*env)->SetByteArrayRegion(env, sizes, 0, sizeof(csizes)/sizeof(*csizes), csizes);
-  return sizes;
-}

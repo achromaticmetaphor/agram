@@ -33,7 +33,7 @@ static const struct lc * * alift(const struct lc * const wcs, const size_t len)
   return out;
 }
 
-static void anagrams_print(JNIEnv * const env, const struct wc * const target, jchar * const prefix, const size_t offset, const struct lc * const * const wcs_in, const jobject list, const jmethodID aladd, const struct lc * * const wcs)
+static int anagrams_print(const struct wc * const target, jchar * const prefix, const size_t offset, const struct lc * const * const wcs_in, const struct lc * * const wcs, int (* const cb)(jchar const *, size_t, void *), void * const cba)
 {
   prefix[offset] = 32;
   const size_t wcslen = filter_lc(wcs, wcs_in, target);
@@ -43,46 +43,36 @@ static void anagrams_print(JNIEnv * const env, const struct wc * const target, j
       memcpy(prefix+offset+1, strbase + (**wcsp).str, sizeof(*prefix) * (**wcsp).len);
       if (is_anagram(target, *wcsp))
         {
-          jstring s = (*env)->NewString(env, prefix + 1, offset + (**wcsp).len);
-          if (! s)
-            return;
-          (*env)->CallBooleanMethod(env, list, aladd, s);
-          (*env)->DeleteLocalRef(env, s);
+          if (cb(prefix + 1, offset + (**wcsp).len, cba))
+            return 2;
         }
       else
         {
           struct wc new_target;
           if (wc_sub(&new_target, target, *wcsp))
-            return;
-          anagrams_print(env, &new_target, prefix, offset + (**wcsp).len + 1, wcsp, list, aladd, wcs + wcslen + 1);
+            return 1;
+          const int rr = anagrams_print(&new_target, prefix, offset + (**wcsp).len + 1, wcsp, wcs + wcslen + 1, cb, cba);
+          if (rr)
+            return rr;
           wc_free(&new_target);
         }
     }
+  return 0;
 }
 
-JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_generate_1native
-  (JNIEnv * const env, const jclass class, const jstring string)
+int anagrams(jchar const * const str, size_t const len, int (* const cb)(jchar const *, size_t, void *), void * const cba)
 {
-  jclass arraylist = (*env)->FindClass(env, "java/util/ArrayList");
-  jmethodID alcon = arraylist ? (*env)->GetMethodID(env, arraylist, "<init>", "()V") : NULL;
-  jmethodID aladd = alcon ? (*env)->GetMethodID(env, arraylist, "add", "(Ljava/lang/Object;)Z") : NULL;
-  jobject list = aladd ? (*env)->NewObject(env, arraylist, alcon) : NULL;
-  jchar const * const str = list ? (*env)->GetStringChars(env, string, NULL) : NULL;
   struct wc target;
-  if (str && ! wc_init(&target, str, (*env)->GetStringLength(env, string)))
-    {
-      const size_t prefsize = target.len * 2 + 1;
-      const struct lc * * const wcs = alift(words_counts, NWORDS);
-      jchar * const prefix = wcs ? malloc(sizeof(*prefix) * prefsize) : NULL;
-      const struct lc * * const scratch = prefix ? malloc(sizeof(*scratch) * (NWORDS + 1) * prefsize) : NULL;
-      if (scratch)
-        anagrams_print(env, &target, prefix, 0, wcs, list, aladd, scratch);
-      free(scratch);
-      free(wcs);
-      free(prefix);
-      wc_free(&target);
-    }
-  if (str)
-    (*env)->ReleaseStringChars(env, string, str);
-  return list;
+  if (wc_init(&target, str, len))
+    return 1;
+  const size_t prefsize = target.len * 2 + 1;
+  const struct lc * * const wcs = alift(words_counts, NWORDS);
+  jchar * const prefix = wcs ? malloc(sizeof(*prefix) * prefsize) : NULL;
+  const struct lc * * const scratch = prefix ? malloc(sizeof(*scratch) * (NWORDS + 1) * prefsize) : NULL;
+  const int rval = scratch ? anagrams_print(&target, prefix, 0, wcs, scratch, cb, cba) : 1;
+  free(scratch);
+  free(wcs);
+  free(prefix);
+  wc_free(&target);
+  return rval;
 }

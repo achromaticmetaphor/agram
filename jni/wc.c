@@ -12,6 +12,7 @@
 #include "astr.h"
 #include "lcwc.h"
 #include "lettercounts.h"
+#include "wc.h"
 
 #include <jni.h>
 
@@ -31,13 +32,8 @@ static int putout(const int fd, const void * buf, size_t len)
   return 0;
 }
 
-static jboolean compile_wl(JNIEnv * const env, jobject const jwords, const char * const outfn)
+jboolean compile_wl(const char * const outfn, struct cwlcbs const * const cbs, void * const cba)
 {
-  jclass const wlreader = (*env)->FindClass(env, "us/achromaticmetaphor/agram/WordlistReader");
-  jmethodID const read = wlreader ? (*env)->GetMethodID(env, wlreader, "read", "()Ljava/lang/String;") : NULL;
-  if (! read)
-    return JNI_FALSE;
-
   char fne[strlen(outfn)+3];
   sprintf(fne, "%s.i", outfn);
   const int fdi = creat(fne, S_IRUSR);
@@ -63,16 +59,15 @@ static jboolean compile_wl(JNIEnv * const env, jobject const jwords, const char 
   size_t stroff = 0;
   size_t charsoff = 0;
   jstring string;
-  while (string = (*env)->CallObjectMethod(env, jwords, read))
+  while (cbs->has_next(cba))
     {
       struct lc index;
       NWORDS++;
-      index.len = (*env)->GetStringLength(env, string);
+      index.len = cbs->len(cba);
       jchar str[index.len];
       jint counts[index.len];
       jint chars[index.len];
-      (*env)->GetStringRegion(env, string, 0, index.len, str);
-      (*env)->DeleteLocalRef(env, string);
+      cbs->get(str, cba);
       index.nchars = lettercounts(counts, chars, str, index.len);
       index.str = stroff;
       index.chars = charsoff;
@@ -112,25 +107,4 @@ fail_s:
 fail_i:
   close(fdi);
   return JNI_FALSE;
-}
-
-JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Native_init__Ljava_lang_String_2Lus_achromaticmetaphor_agram_WordlistReader_2
-  (JNIEnv * const env, jclass const class, jstring const jfn, jobject const jwords)
-{
-  const char * const fn = (*env)->GetStringUTFChars(env, jfn, 0);
-  const int compile_failed = fn ? ! compile_wl(env, jwords, fn) : 1;
-  const int load_failed = compile_failed ? 1 : load_wl(fn);
-  if (fn)
-    (*env)->ReleaseStringUTFChars(env, jfn, fn);
-  return load_failed ? JNI_FALSE : JNI_TRUE;
-}
-
-JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Native_init__Ljava_lang_String_2
-  (JNIEnv * const env, jclass const class, jstring const jfn)
-{
-  const char * const fn = (*env)->GetStringUTFChars(env, jfn, 0);
-  const int failure = fn ? load_wl(fn) : 1;
-  if (fn)
-    (*env)->ReleaseStringUTFChars(env, jfn, fn);
-  return failure ? JNI_FALSE : JNI_TRUE;
 }
