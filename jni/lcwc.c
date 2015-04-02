@@ -1,12 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "agram_types.h"
 #include "agram_wc.h"
 #include "astr.h"
 #include "lcwc.h"
 #include "lettercounts.h"
-
-#include <jni.h>
 
 int wc_sub(struct wc * const out, const struct wc * const a, const struct lc * const b)
 {
@@ -51,11 +50,12 @@ void wc_free(struct wc * const del)
   free(del->counts);
 }
 
-int wc_init(struct wc * const target, const jchar * const str, const jsize slen)
+int wc_init(struct wc * const target, const agram_dchar * const str, const size_t slen)
 {
-  target->str = ustrdup(str, slen);
+  target->str = malloc(slen * sizeof(*target->str));
   if (! target->str)
     return 1;
+  memcpy(target->str, str, slen * sizeof(*str));
   target->len = slen;
   target->chars = malloc(sizeof(*target->chars) * (target->len + 1));
   target->counts = malloc(sizeof(*target->counts) * (target->len + 1));

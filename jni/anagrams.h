@@ -3,8 +3,8 @@
 
 #include <stddef.h>
 
-#include <jni.h>
+#include "agram_types.h"
 
-int anagrams(jchar const *, size_t, int (*)(jchar const *, size_t, void *), void *);
+int anagrams(agram_dchar const *, size_t, int (*)(agram_dchar const *, size_t, void *), void *);
 
 #endif

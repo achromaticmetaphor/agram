@@ -3,10 +3,8 @@
 
 #include <stddef.h>
 
-#include <jni.h>
+#include "agram_types.h"
 
-size_t astrlen(jint const *);
-void uastrcpy(jint *, const jchar *, jsize);
-jchar * ustrdup(jchar const *, jsize);
+size_t uastrcpy(agram_cpt *, const agram_dchar *, size_t);
 
 #endif

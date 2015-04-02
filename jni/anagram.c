@@ -1,12 +1,11 @@
-#include <jni.h>
-
+#include "agram_types.h"
 #include "agram_wc.h"
 #include "is_anagram.h"
 #include "lcwc.h"
 
-int anagram(const jchar * const str, const size_t len, int (* const cb)(jchar const *, size_t, void *), void * const cba)
+int anagram(const agram_dchar * const str, const size_t len, int (* const cb)(agram_dchar const *, size_t, void *), void * const cba)
 {
-  jsize i;
+  agram_size i;
   struct wc target;
   if (wc_init(&target, str, len))
     return 1;

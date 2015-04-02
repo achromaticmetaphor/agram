@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include <jni.h>
+#include "agram_types.h"
 
 struct lc
 {
@@ -17,13 +17,13 @@ struct wc
 {
   unsigned int len;
   unsigned int nchars;
-  const jchar * str;
-  jint * chars;
+  agram_dchar * str;
+  agram_cpt * chars;
   unsigned int * counts;
 };
 
 int wc_sub(struct wc *, const struct wc *, const struct lc *);
-int wc_init(struct wc *, const jchar *, jsize);
+int wc_init(struct wc *, const agram_dchar *, size_t);
 void wc_free(struct wc *);
 void lcwc(struct wc *, const struct lc *);
 

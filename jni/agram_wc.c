@@ -6,19 +6,18 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "agram_types.h"
 #include "lcwc.h"
 
-#include <jni.h>
-
-jint NWORDS = 0;
+agram_size NWORDS = 0;
 
 struct lc * words_counts;
 static size_t words_counts_len = 0;
 
-jchar * strbase;
+agram_dchar * strbase;
 static size_t strbase_len = 0;
 
-jint * charsbase;
+agram_cpt * charsbase;
 static size_t charsbase_len = 0;
 
 unsigned int * countsbase;

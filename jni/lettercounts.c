@@ -2,11 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "agram_types.h"
 #include "astr.h"
 
-#include <jni.h>
-
-static void insert(const jint c, jint l[], size_t * const n)
+static void insert(const agram_cpt c, agram_cpt l[], size_t * const n)
 {
   size_t i;
   for (i = 0; i < *n; i++)
@@ -17,16 +16,15 @@ static void insert(const jint c, jint l[], size_t * const n)
 
 static int wccmp(const void * const va, const void * const vb)
 {
-  const jint * const a = va;
-  const jint * const b = vb;
+  const agram_cpt * const a = va;
+  const agram_cpt * const b = vb;
   return *a < *b ? -1 : *a != *b;
 }
 
-static size_t lettercounts_s(unsigned int counts[], jint letters[], const jint * const str)
+static size_t lettercounts_s(unsigned int counts[], agram_cpt letters[], const agram_cpt * const str, const size_t len)
 {
   size_t i;
-  const jint * s;
-  const size_t len = astrlen(str);
+  const agram_cpt * s;
   size_t nmemb = 0;
 
   for (s = str; *s; s++)
@@ -45,9 +43,15 @@ static size_t lettercounts_s(unsigned int counts[], jint letters[], const jint *
   return nmemb;
 }
 
-size_t lettercounts(unsigned int counts[], jint letters[], const jchar * const str, const jsize slen)
+size_t lettercounts(unsigned int counts[], agram_cpt letters[], const agram_dchar * const str, const size_t slen)
 {
-  jint tmp[slen+1];
-  uastrcpy(tmp, str, slen);
-  return lettercounts_s(counts, letters, tmp);
+#if AGRAM_ANDROID
+  agram_cpt tmp[slen+1];
+  return lettercounts_s(counts, letters, tmp, uastrcpy(tmp, str, slen));
+#else
+  const size_t wlen = mbstowcs(NULL, str, 0);
+  agram_cpt tmp[wlen+1];
+  mbstowcs(tmp, str, wlen+1);
+  return lettercounts_s(counts, letters, tmp, wlen);
+#endif
 }

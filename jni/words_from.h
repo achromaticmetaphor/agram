@@ -2,8 +2,9 @@
 #define WORDS_FROM_H
 
 #include <stddef.h>
-#include <jni.h>
 
-int words_from(jchar const *, size_t, int, int (*)(jchar const *, size_t, void *), void *);
+#include "agram_types.h"
+
+int words_from(agram_dchar const *, size_t, int, int (*)(agram_dchar const *, size_t, void *), void *);
 
 #endif

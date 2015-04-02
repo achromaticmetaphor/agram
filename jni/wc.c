@@ -14,8 +14,6 @@
 #include "lettercounts.h"
 #include "wc.h"
 
-#include <jni.h>
-
 static int putout(const int fd, const void * buf, size_t len)
 {
   while (len)
@@ -32,13 +30,13 @@ static int putout(const int fd, const void * buf, size_t len)
   return 0;
 }
 
-jboolean compile_wl(const char * const outfn, struct cwlcbs const * const cbs, void * const cba)
+int compile_wl(const char * const outfn, struct cwlcbs const * const cbs, void * const cba)
 {
   char fne[strlen(outfn)+3];
   sprintf(fne, "%s.i", outfn);
   const int fdi = creat(fne, S_IRUSR);
   if (fdi == -1)
-    return JNI_FALSE;
+    return 1;
 
   sprintf(fne, "%s.s", outfn);
   const int fds = creat(fne, S_IRUSR);
@@ -55,18 +53,17 @@ jboolean compile_wl(const char * const outfn, struct cwlcbs const * const cbs, v
   if (fdn == -1)
     goto fail_c;
 
-  jint NWORDS = 0;
+  agram_size NWORDS = 0;
   size_t stroff = 0;
   size_t charsoff = 0;
-  jstring string;
   while (cbs->has_next(cba))
     {
       struct lc index;
       NWORDS++;
       index.len = cbs->len(cba);
-      jchar str[index.len];
-      jint counts[index.len];
-      jint chars[index.len];
+      agram_dchar str[index.len];
+      unsigned int counts[index.len];
+      agram_cpt chars[index.len];
       cbs->get(str, cba);
       index.nchars = lettercounts(counts, chars, str, index.len);
       index.str = stroff;
@@ -85,18 +82,18 @@ jboolean compile_wl(const char * const outfn, struct cwlcbs const * const cbs, v
     | fsync(fdc) | close(fdc)
     | fsync(fds) | close(fds)
     | fsync(fdi) | close(fdi))
-    return JNI_FALSE;
+    return 1;
 
   const int fd = creat(outfn, S_IRUSR);
   if (putout(fd, &NWORDS, sizeof(NWORDS)) | fsync(fd) | close(fd))
-    return JNI_FALSE;
+    return 1;
 
   sprintf(fne, "%s.k", outfn);
   const int fdk = creat(fne, S_IRUSR);
   fsync(fdk);
   close(fdk);
 
-  return JNI_TRUE;
+  return 0;
 
 fail_n:
   close(fdn);
@@ -106,5 +103,5 @@ fail_s:
   close(fds);
 fail_i:
   close(fdi);
-  return JNI_FALSE;
+  return 1;
 }
