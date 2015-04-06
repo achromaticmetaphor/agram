@@ -14,7 +14,7 @@
 #include "lettercounts.h"
 #include "wc.h"
 
-static int putout(const int fd, const void * buf, size_t len)
+int putout(const int fd, const void * buf, size_t len)
 {
   while (len)
     {
