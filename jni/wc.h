@@ -12,7 +12,6 @@ struct cwlcbs
   void (* get)(agram_dchar *, void *);
 };
 
-int putout(int, const void *, size_t);
 int compile_wl(const char *, struct cwlcbs const *, void *);
 
 #endif

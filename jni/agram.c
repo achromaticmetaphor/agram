@@ -16,10 +16,12 @@
 
 static int prn(const agram_dchar * str, size_t len, void * vfd)
 {
-  return putout(* (int *) vfd, str, len * sizeof(*str)) || putout(* (int *) vfd, "\n", 1);
+  agram_dchar ostr[len+2];
+  memcpy(ostr, str, len * sizeof(*ostr));
+  ostr[len] = '\n';
+  ostr[len+1] = 0;
+  return fputs(ostr, vfd) == EOF;
 }
-
-static int stdoutfd = STDOUT_FILENO;
 
 static int usage(const char * pn)
 {
@@ -30,7 +32,7 @@ static int usage(const char * pn)
 static int single(int argc, char * argv[])
 {
   if (argc == 3)
-    return anagram(argv[2], strlen(argv[2]), prn, &stdoutfd);
+    return anagram(argv[2], strlen(argv[2]), prn, stdout);
   return usage(argv[0]);
 }
 
@@ -107,7 +109,7 @@ static int random(int argc, char * argv[])
   for (long int i = 0; i < count; i++)
     {
       const int n = rand() % NWORDS;
-      if (prn(words_counts[n].str + strbase, words_counts[n].len, &stdoutfd))
+      if (prn(words_counts[n].str + strbase, words_counts[n].len, stdout))
         return 1;
     }
   return 0;
@@ -116,7 +118,7 @@ static int random(int argc, char * argv[])
 static int contained(int argc, char * argv[])
 {
   if (argc >= 3)
-    return words_from(argv[2], strlen(argv[2]), argc >= 4, prn, &stdoutfd);
+    return words_from(argv[2], strlen(argv[2]), argc >= 4, prn, stdout);
   return usage(argv[0]);
 }
 

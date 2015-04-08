@@ -26,6 +26,7 @@ public class Wordlist {
   public static String transformLabel(String label) {
     try {
       MessageDigest dig = MessageDigest.getInstance("SHA-256");
+      dig.update(new byte[] {2});
       dig.update(platform());
       dig.update(label.getBytes());
       return Base64.encodeToString(dig.digest(), Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
@@ -44,10 +45,8 @@ public class Wordlist {
     (new AsyncTask<Void, Void, Boolean>() {
       protected Boolean doInBackground(Void... v) {
         synchronized (Wordlist.class) {
-          if (new File(filesDir, filename + ".k").exists())
-            return Native.init(new File(filesDir, filename).getAbsolutePath());
-          else
-            return Native.init(new File(filesDir, filename).getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
+          File wlfile = new File(filesDir, filename);
+          return (wlfile.exists() && Native.init(wlfile.getAbsolutePath())) || Native.init(wlfile.getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
         }
       }
       protected void onPostExecute(Boolean b) {

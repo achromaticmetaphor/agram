@@ -1,57 +1,25 @@
-#include <errno.h>
-#include <fcntl.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
-#include "agram_wc.h"
-#include "astr.h"
 #include "lcwc.h"
 #include "lettercounts.h"
 #include "wc.h"
 
-int putout(const int fd, const void * buf, size_t len)
-{
-  while (len)
-    {
-      const ssize_t written = write(fd, buf, len);
-      if (written == -1)
-        if (errno == EINTR)
-          continue;
-        else
-          return 1;
-      len -= written;
-      buf = (char *) buf + written;
-    }
-  return 0;
-}
-
 int compile_wl(const char * const outfn, struct cwlcbs const * const cbs, void * const cba)
 {
   char fne[strlen(outfn)+3];
-  sprintf(fne, "%s.i", outfn);
-  const int fdi = creat(fne, S_IRUSR);
-  if (fdi == -1)
-    return 1;
 
-  sprintf(fne, "%s.s", outfn);
-  const int fds = creat(fne, S_IRUSR);
-  if (fds == -1)
-    goto fail_i;
+#define FOF(suffix, fail) \
+  sprintf(fne, "%s." # suffix, outfn); \
+  FILE * const fi ## suffix = fopen(fne, "wb"); \
+  if (! fi ## suffix) \
+    fail;
 
-  sprintf(fne, "%s.c", outfn);
-  const int fdc = creat(fne, S_IRUSR);
-  if (fdc == -1)
-    goto fail_s;
-
-  sprintf(fne, "%s.n", outfn);
-  const int fdn = creat(fne, S_IRUSR);
-  if (fdn == -1)
-    goto fail_c;
+  FOF(i, return 1)
+  FOF(s, goto fail_i)
+  FOF(c, goto fail_s)
+  FOF(n, goto fail_c)
 
   agram_size NWORDS = 0;
   size_t stroff = 0;
@@ -71,37 +39,42 @@ int compile_wl(const char * const outfn, struct cwlcbs const * const cbs, void *
       stroff += index.len;
       charsoff += index.nchars;
 
-      if (putout(fdi, &index, sizeof(index))
-       || putout(fds, str, sizeof(str))
-       || putout(fdc, chars, sizeof(*chars) * index.nchars)
-       || putout(fdn, counts, sizeof(*counts) * index.nchars))
+      if (fwrite(&index, sizeof(index), 1, fii) != 1
+       || fwrite(str, sizeof(*str), index.len, fis) != index.len
+       || fwrite(chars, sizeof(*chars), index.nchars, fic) != index.nchars
+       || fwrite(counts, sizeof(*counts), index.nchars, fin) != index.nchars)
         goto fail_n;
     }
 
-  if (fsync(fdn) | close(fdn)
-    | fsync(fdc) | close(fdc)
-    | fsync(fds) | close(fds)
-    | fsync(fdi) | close(fdi))
+  long tells[4];
+  tells[0] = ftell(fii);
+  tells[1] = ftell(fis);
+  tells[2] = ftell(fic);
+  tells[3] = ftell(fin);
+
+  if (fclose(fin) | fclose(fic) | fclose(fis) | fclose(fii))
     return 1;
 
-  const int fd = creat(outfn, S_IRUSR);
-  if (putout(fd, &NWORDS, sizeof(NWORDS)) | fsync(fd) | close(fd))
-    return 1;
+  int i;
+  for (i = 0; i < 4; i++)
+    if (tells[i] == -1)
+      return 1;
 
-  sprintf(fne, "%s.k", outfn);
-  const int fdk = creat(fne, S_IRUSR);
-  fsync(fdk);
-  close(fdk);
+  FILE * const fi = fopen(outfn, "wb");
+  if (! fi)
+    return 1;
+  if ((fwrite(&NWORDS, sizeof(NWORDS), 1, fi) != 1 || fwrite(tells, sizeof(*tells), 4, fi) != 4) | fclose(fi))
+    return 1;
 
   return 0;
 
 fail_n:
-  close(fdn);
+  fclose(fin);
 fail_c:
-  close(fdc);
+  fclose(fic);
 fail_s:
-  close(fds);
+  fclose(fis);
 fail_i:
-  close(fdi);
+  fclose(fii);
   return 1;
 }
