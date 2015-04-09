@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "vector.h"
 
@@ -9,29 +10,34 @@ void vector_init(struct vector * const vec)
   vec->capacity = 0;
 }
 
-int vector_append(struct vector * const vec, void * const val)
+int vector_append(struct vector * const vec, void const * const val, size_t size)
 {
-  if (vec->length >= vec->capacity)
+  size_t ncap = vec->capacity;
+  while (vec->length + size >= ncap)
+    ncap = ncap * 2 + 1;
+  if (ncap != vec->capacity)
     {
-      void * const nvec = realloc(vec->vector, sizeof(*vec->vector) * (vec->capacity * 2 + 1));
+      void * const nvec = realloc(vec->vector, sizeof(*vec->vector) * ncap);
       if (! nvec)
         return 1;
       vec->vector = nvec;
-      vec->capacity = vec->capacity * 2 + 1;
+      vec->capacity = ncap;
     }
-  vec->vector[vec->length++] = val;
+  memcpy(vec->vector + vec->length, val, size);
+  vec->length += size;
   return 0;
 }
 
-void vector_sort(struct vector * const vec, int (* const cmp)(const void *, const void *))
+void vector_sort(struct vector * const vec, size_t size, int (* const cmp)(const void *, const void *))
 {
-  qsort(vec->vector, vec->length, sizeof(*vec->vector), cmp);
+  qsort(vec->vector, vec->length / size, size, cmp);
 }
 
-void vector_traverse(struct vector * const vec, void (* const cb)(void *))
+void vector_traverse(struct vector * const vec, size_t size, void (* const cb)(void *))
 {
-  for (size_t i = 0; i < vec->length; i++)
-    cb(vec->vector[i]);
+  size_t i;
+  for (i = 0; i < vec->length; i += size)
+    cb(vec->vector + i);
 }
 
 void vector_destroy(struct vector * const vec)

@@ -43,7 +43,7 @@ static int append(const agram_dchar * str, size_t len, void * vec)
     return 1;
   memcpy(nstr, str, len * sizeof(*str));
   nstr[len] = 0;
-  return vector_append(vec, nstr) ? free(nstr), 1 : 0;
+  return vector_append(vec, &nstr, sizeof(nstr)) ? free(nstr), 1 : 0;
 }
 
 static int multicmp(const void * const va, const void * const vb)
@@ -78,8 +78,8 @@ static int multicmp(const void * const va, const void * const vb)
 
 static void prnfree(void * str)
 {
-  puts(str);
-  free(str);
+  puts(* (char * *) str);
+  free(* (char * *) str);
 }
 
 static int multi(int argc, char * argv[])
@@ -91,8 +91,8 @@ static int multi(int argc, char * argv[])
       const int error = anagrams(argv[2], strlen(argv[2]), append, &vec);
       if (! error)
         {
-          vector_sort(&vec, multicmp);
-          vector_traverse(&vec, prnfree);
+          vector_sort(&vec, sizeof(agram_dchar *), multicmp);
+          vector_traverse(&vec, sizeof(agram_dchar *), prnfree);
         }
       vector_destroy(&vec);
       return error;
