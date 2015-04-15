@@ -20,6 +20,7 @@ int words_from(agram_dchar const * const str, size_t const len, int const max, i
   for (i = 0; i < NWORDS; i++)
     if (is_within_lw(words_counts+i, &target))
       if (cb(words_counts[i].str + strbase, words_counts[i].len, cba))
-        return 2;
+        return wc_free(&target), 2;
+  wc_free(&target);
   return 0;
 }

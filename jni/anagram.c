@@ -12,6 +12,7 @@ int anagram(const agram_dchar * const str, const size_t len, int (* const cb)(ag
   for (i = 0; i < NWORDS; i++)
     if (is_anagram(&target, words_counts+i))
       if (cb(words_counts[i].str + strbase, words_counts[i].len, cba))
-        return 2;
+        return wc_free(&target), 2;
+  wc_free(&target);
   return 0;
 }
