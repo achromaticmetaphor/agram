@@ -36,67 +36,10 @@ static int single(int argc, char * argv[])
   return usage(argv[0]);
 }
 
-static int append(const agram_dchar * str, size_t len, void * vec)
-{
-  agram_dchar * nstr = malloc((len + 1) * sizeof(*str));
-  if (! nstr)
-    return 1;
-  memcpy(nstr, str, len * sizeof(*str));
-  nstr[len] = 0;
-  return vector_append(vec, &nstr, sizeof(nstr)) ? free(nstr), 1 : 0;
-}
-
-static int multicmp(const void * const va, const void * const vb)
-{
-  const agram_dchar * const a = * (const agram_dchar * const *) va;
-  const agram_dchar * const b = * (const agram_dchar * const *) vb;
-
-  size_t lena = strlen(a);
-  size_t lenb = strlen(b);
-
-  if (lena < lenb)
-    return -1;
-  if (lena > lenb)
-    return 1;
-
-  for (size_t i = 0; i < lena; i++)
-    {
-      if (a[i] == b[i])
-        continue;
-      if (a[i] == ' ')
-        return 1;
-      if (b[i] == ' ')
-        return -1;
-    }
-
-  for (size_t i = 0; i < lena; i++)
-    if (a[i] != b[i])
-      return a[i] < b[i] ? -1 : a[i] > b[i] ? 1 : 0;
-
-  return 0;
-}
-
-static void prnfree(void * str)
-{
-  puts(* (char * *) str);
-  free(* (char * *) str);
-}
-
 static int multi(int argc, char * argv[])
 {
   if (argc == 3)
-    {
-      struct vector vec;
-      vector_init(&vec);
-      const int error = anagrams(argv[2], strlen(argv[2]), append, &vec);
-      if (! error)
-        {
-          vector_sort(&vec, sizeof(agram_dchar *), multicmp);
-          vector_traverse(&vec, sizeof(agram_dchar *), prnfree);
-        }
-      vector_destroy(&vec);
-      return error;
-    }
+    return anagrams(argv[2], strlen(argv[2]), prn, stdout);
   return usage(argv[0]);
 }
 

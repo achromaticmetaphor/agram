@@ -84,8 +84,8 @@ JNIEXPORT jint JNICALL Java_us_achromaticmetaphor_agram_Word_get_1nwords
   return NWORDS;
 }
 
-JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_generate_1native
-  (JNIEnv * const env, const jclass class, const jstring string)
+JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_generate
+  (JNIEnv * const env, const jobject class, const jstring string)
 {
   struct al al;
   jchar const * const str = alinit(&al, env) ? NULL : (*env)->GetStringChars(env, string, NULL);
