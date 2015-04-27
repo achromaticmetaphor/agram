@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdlib.h>
 
 #include <jni.h>
 
@@ -35,15 +36,20 @@ static int alinit(struct al * const al, JNIEnv * const env)
   return ! al->alinstance;
 }
 
+static int stradd(JNIEnv * const env, jobject const obj, jmethodID const mid, jchar const * str, size_t const len)
+{
+  jstring const s = (*env)->NewString(env, str, len);
+  if (! s)
+    return 1;
+  (*env)->CallBooleanMethod(env, obj, mid, s);
+  (*env)->DeleteLocalRef(env, s);
+  return 0;
+}
+
 static int aladd(jchar const * str, size_t const len, void * const val)
 {
   struct al * const al = val;
-  jstring s = (*al->env)->NewString(al->env, str, len);
-  if (! s)
-    return 1;
-  (*al->env)->CallBooleanMethod(al->env, al->alinstance, al->aladd, s);
-  (*al->env)->DeleteLocalRef(al->env, s);
-  return 0;
+  return stradd(al->env, al->alinstance, al->aladd, str, len);
 }
 
 JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagram_generate
@@ -84,7 +90,7 @@ JNIEXPORT jint JNICALL Java_us_achromaticmetaphor_agram_Word_get_1nwords
   return NWORDS;
 }
 
-JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_generate
+JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_generate__Ljava_lang_String_2
   (JNIEnv * const env, const jobject class, const jstring string)
 {
   struct al al;
@@ -156,4 +162,70 @@ JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Native_init__Ljava_l
   if (fn)
     (*env)->ReleaseStringUTFChars(env, jfn, fn);
   return failure ? JNI_FALSE : JNI_TRUE;
+}
+
+JNIEXPORT void JNICALL Java_us_achromaticmetaphor_agram_Anagrams_uninit
+  (JNIEnv * const env, jobject const obj)
+{
+  jfieldID const handlefield = (*env)->GetFieldID(env, (*env)->GetObjectClass(env, obj), "handle", "[B");
+  jbyteArray const handle = (*env)->GetObjectField(env, obj, handlefield);
+  struct agsto * state = NULL;
+  if (handle && (*env)->GetArrayLength(env, handle) == sizeof(struct agsto *) / sizeof(jbyte))
+    (*env)->GetByteArrayRegion(env, handle, 0, sizeof(struct agsto *) / sizeof(jbyte), (void *) &state);
+  (*env)->SetObjectField(env, obj, handlefield, NULL);
+  anagrams_destroy(state);
+  free(state);
+}
+
+JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Anagrams_init__Ljava_lang_String_2
+  (JNIEnv * const env, jobject const obj, jstring const jstr)
+{
+  struct agsto * const state = malloc(sizeof(*state));
+  jchar const * const str = state ? (*env)->GetStringChars(env, jstr, NULL) : NULL;
+  int const init_failed = str ? anagrams_init(state, str, (*env)->GetStringLength(env, jstr)) : 1;
+  if (str)
+    (*env)->ReleaseStringChars(env, jstr, str);
+  jbyteArray const handle = (*env)->NewByteArray(env, sizeof(struct agsto *) / sizeof(jbyte));
+  if (handle)
+    {
+      Java_us_achromaticmetaphor_agram_Anagrams_uninit(env, obj);
+      (*env)->SetByteArrayRegion(env, handle, 0, sizeof(struct agsto *) / sizeof(jbyte), (void *) &state);
+      jfieldID const handlefield = (*env)->GetFieldID(env, (*env)->GetObjectClass(env, obj), "handle", "[B");
+      (*env)->SetObjectField(env, obj, handlefield, handle);
+      return JNI_TRUE;
+    }
+  else
+    {
+      anagrams_destroy(state);
+      free(state);
+      return JNI_FALSE;
+    }
+}
+
+JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_generate__I
+  (JNIEnv * const env, jobject const obj, jint const n)
+{
+  struct al al;
+  if (alinit(&al, env))
+    return NULL;
+  jfieldID const handlefield = (*env)->GetFieldID(env, (*env)->GetObjectClass(env, obj), "handle", "[B");
+  jbyteArray const handle = (*env)->GetObjectField(env, obj, handlefield);
+  if (! handle || (*env)->GetArrayLength(env, handle) != sizeof(struct agsto *) / sizeof(jbyte))
+    {
+      (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/IllegalStateException"), "null or invalid handle");
+      return NULL;
+    }
+  struct agsto * state;
+  (*env)->GetByteArrayRegion(env, handle, 0, sizeof(struct agsto *) / sizeof(jbyte), (void *) &state);
+
+  jint i;
+  for (i = 0; i < n; i++)
+    {
+      size_t const slen = anagrams_single(state);
+      if (! slen)
+        break;
+      if (aladd(state->prefix + 1, slen, &al))
+        break;
+    }
+  return al.alinstance;
 }

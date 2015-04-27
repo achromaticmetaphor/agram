@@ -4,13 +4,19 @@ import java.util.ArrayList;
 
 public class WordGenerator implements Generator, Refreshable {
 
-  public ArrayList<String> generate(String s) {
-    int n = 1;
+  private int wordsRemaining = -1;
+
+  private static int getInt(String s, int def) {
     try {
-      n = Integer.parseInt(s);
+      return Integer.parseInt(s);
     }
-      catch (NumberFormatException nfe) {}
-    return Word.pick(n);
+      catch (NumberFormatException nfe) {
+        return def;
+      }
+  }
+
+  public ArrayList<String> generate(String s) {
+    return Word.pick(getInt(s, 1));
   }
 
   public ArrayList<String> generate(String s, boolean b) {
@@ -21,5 +27,24 @@ public class WordGenerator implements Generator, Refreshable {
   public String longLabel() { return ""; }
   public String shortLabel() { return "Generate"; }
   public String inputPrompt() { return "Number of words"; }
+
+  public synchronized boolean init(String s) {
+    wordsRemaining = getInt(s, -1);
+    return true;
+  }
+
+  public boolean init(String s, boolean lng) {
+    return init(s);
+  }
+
+  public synchronized void uninit() { wordsRemaining = 0; }
+
+  public synchronized ArrayList<String> generate(int n) {
+    if (wordsRemaining >= 0) {
+      n = Math.min(wordsRemaining, n);
+      wordsRemaining -= n;
+    }
+    return Word.pick(n);
+  }
 
 }

@@ -10,4 +10,8 @@ interface Generator extends Serializable {
   public String longLabel();
   public String shortLabel();
   public String inputPrompt();
+  public boolean init(String s);
+  public boolean init(String s, boolean lng);
+  public ArrayList<String> generate(int n);
+  public void uninit();
 }

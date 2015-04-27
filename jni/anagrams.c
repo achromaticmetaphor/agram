@@ -4,8 +4,7 @@
 
 #include "agram_types.h"
 #include "agram_wc.h"
-#include "astr.h"
-#include "is_anagram.h"
+#include "anagrams.h"
 #include "is_within.h"
 #include "lcwc.h"
 
@@ -32,50 +31,112 @@ static const struct lc * * alift(const struct lc * const wcs, const size_t len)
   return out;
 }
 
-static int anagrams_print(const struct wc * const target, agram_dchar * const prefix, const size_t offset, const struct lc * const * const wcs_in, const struct lc * * const wcs, int (* const cb)(agram_dchar const *, size_t, void *), void * const cba)
+size_t anagrams_single(struct agsto * const ostate)
 {
-#if AGRAM_ANDROID
-  prefix[offset] = 32;
-#else
-  prefix[offset] = ' ';
-#endif
-  const size_t wcslen = filter_lc(wcs, wcs_in, target);
-  const struct lc * const * wcsp;
-  for (wcsp = wcs; *wcsp; wcsp++)
+top: ;
+  struct agst * const state = ostate->states + ostate->depth;
+  if (*state->wcsp)
     {
-      memcpy(prefix+offset+1, strbase + (**wcsp).str, sizeof(*prefix) * (**wcsp).len);
-      if (is_anagram(target, *wcsp))
-        {
-          if (cb(prefix + 1, offset + (**wcsp).len, cba))
-            return 2;
-        }
+      memcpy(ostate->prefix + state->offset + 1, strbase + (**state->wcsp).str, sizeof(*ostate->prefix) * (**state->wcsp).len);
+      if (state->target.len == (**state->wcsp).len)
+        return state->offset + (**state->wcsp++).len;
       else
         {
-          struct wc new_target;
-          if (wc_sub(&new_target, target, *wcsp))
-            return 1;
-          const int rr = anagrams_print(&new_target, prefix, offset + (**wcsp).len + 1, wcsp, wcs + wcslen + 1, cb, cba);
-          if (rr)
-            return rr;
-          wc_free(&new_target);
+          struct agst * const next_level = ostate->states + ostate->depth + 1;
+          if (wc_sub(&next_level->target, &state->target, *state->wcsp))
+            return (ostate->error = 1), 0;
+          next_level->offset = state->offset + (**state->wcsp).len + 1;
+#if AGRAM_ANDROID
+          ostate->prefix[next_level->offset] = 32;
+#else
+          ostate->prefix[next_level->offset] = ' ';
+#endif
+          next_level->wcs_in = state->wcsp;
+          next_level->wcs = state->wcs + state->wcslen + 1;
+          next_level->wcsp = next_level->wcs;
+          next_level->wcslen = filter_lc(next_level->wcs, next_level->wcs_in, &next_level->target);
+          state->wcsp++;
+          ostate->depth++;
+          goto top;
         }
     }
-  return 0;
+  else
+    {
+      if (ostate->depth)
+        {
+          wc_free(&state->target);
+          ostate->depth--;
+          goto top;
+        }
+      else
+        return 0;
+    }
 }
 
-int anagrams(agram_dchar const * const str, size_t const len, int (* const cb)(agram_dchar const *, size_t, void *), void * const cba)
+int anagrams_init(struct agsto * const ostate, agram_dchar const * const str, size_t const len)
 {
   struct wc target;
   if (wc_init(&target, str, len))
     return 1;
+
   const size_t prefsize = target.len * 2 + 1;
-  const struct lc * * const wcs = alift(words_counts, NWORDS);
-  agram_dchar * const prefix = wcs ? malloc(sizeof(*prefix) * prefsize) : NULL;
-  const struct lc * * const scratch = prefix ? malloc(sizeof(*scratch) * (NWORDS + 1) * prefsize) : NULL;
-  const int rval = scratch ? anagrams_print(&target, prefix, 0, wcs, scratch, cb, cba) : 1;
-  free(scratch);
-  free(wcs);
-  free(prefix);
-  wc_free(&target);
+  ostate->states = malloc(sizeof(*ostate->states) * prefsize);
+  ostate->depth = 0;
+  ostate->prefix = ostate->states ? malloc(sizeof(*ostate->prefix) * prefsize) : NULL;
+  ostate->error = 0;
+  if (! ostate->prefix)
+    {
+      wc_free(&target);
+      anagrams_destroy(ostate);
+      return 1;
+    }
+
+  struct agst * const state = ostate->states;
+  state->target = target;
+  state->offset = 0;
+  state->wcs_in = alift(words_counts, NWORDS);
+  state->wcs = state->wcs_in ? malloc(sizeof(*state->wcs) * (NWORDS + 1) * prefsize) : NULL;
+  state->wcsp = state->wcs;
+  state->wcslen = state->wcs ? filter_lc(state->wcs, state->wcs_in, &state->target) : 0;
+  if (! state->wcs)
+    return anagrams_destroy(ostate), 1;
+
+  return 0;
+}
+
+void anagrams_destroy(struct agsto * const ostate)
+{
+  if (! ostate)
+    return;
+  for (; ostate->depth; ostate->depth--)
+    wc_free(&ostate->states[ostate->depth].target);
+  struct agst * const state = ostate->states;
+  if (state)
+    {
+      wc_free(&state->target);
+      free(state->wcs);
+      free(state->wcs_in);
+    }
+  free(ostate->prefix);
+  ostate->prefix = NULL;
+  free(ostate->states);
+  ostate->states = NULL;
+}
+
+int anagrams(agram_dchar const * const str, size_t const len, int (* const cb)(agram_dchar const *, size_t, void *), void * const cba)
+{
+  struct agsto ostate;
+  if (anagrams_init(&ostate, str, len))
+    return 1;
+  int rval = 0;
+  size_t slen;
+  while (slen = anagrams_single(&ostate))
+    if (cb(ostate.prefix + 1, slen, cba))
+      {
+        rval = 2;
+        break;
+      }
+  rval |= ostate.error;
+  anagrams_destroy(&ostate);
   return rval;
 }
