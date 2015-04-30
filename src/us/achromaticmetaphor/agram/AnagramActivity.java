@@ -55,6 +55,7 @@ public class AnagramActivity extends Activity {
       ListView listView = (ListView) findViewById(R.id.cmdlist);
       listView.setAdapter(adapter);
       listView.setOnScrollListener(new ScrollFiller(gen, shareList, adapter));
+      listView.setSelection(state.getInt("position", 0));
     }
   }
 
@@ -173,6 +174,7 @@ public class AnagramActivity extends Activity {
       pdia = null;
     }
     state.putSerializable("gen", gen);
+    state.putInt("position", ((ListView) findViewById(R.id.cmdlist)).getFirstVisiblePosition());
   }
 
   private static class ScrollFiller implements AbsListView.OnScrollListener {
