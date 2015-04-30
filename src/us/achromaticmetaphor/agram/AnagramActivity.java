@@ -7,8 +7,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -24,6 +26,8 @@ import java.text.Normalizer;
 
 public class AnagramActivity extends Activity {
 
+  private static final int SCROLL_BY = 128;
+
   private Generator gen;
   private String input = "";
   private ArrayList<String> shareList;
@@ -34,8 +38,8 @@ public class AnagramActivity extends Activity {
   protected void onCreate(Bundle state) {
     super.onCreate(state);
     setContentView(R.layout.activity_listview);
-    gen = (Generator) getIntent().getSerializableExtra("generator");
-    shareList = state == null ? null : state.getStringArrayList("shareList");
+    gen = (Generator) (state == null ? getIntent().getSerializableExtra("generator") : state.getSerializable("gen"));
+    shareList = state == null ? null : new ArrayList<String>(state.getStringArrayList("shareList"));
     input = state == null ? "" : state.getString("input");
     longMode = state == null ? false : state.getBoolean("longMode");
     if (input == null)
@@ -48,22 +52,32 @@ public class AnagramActivity extends Activity {
     }
     else {
       ArrayAdapter adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, shareList);
-      ((ListView) findViewById(R.id.cmdlist)).setAdapter(adapter);
+      ListView listView = (ListView) findViewById(R.id.cmdlist);
+      listView.setAdapter(adapter);
+      listView.setOnScrollListener(new ScrollFiller(gen, shareList, adapter));
     }
   }
 
   public void refresh() {
     pdia = ProgressDialog.show(AnagramActivity.this, "Generating", "Please wait", true, false);
-    (new AsyncGenerate(gen, longMode, new AsyncGenerate.Listener() {
-      public void onFinished(ArrayList<String> result) {
-        ArrayAdapter adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, result);
-        ((ListView) findViewById(R.id.cmdlist)).setAdapter(adapter);
-        shareList = result;
+    shareList = new ArrayList<String>();
+    final ArrayAdapter adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, shareList);
+    final ListView listView = (ListView) findViewById(R.id.cmdlist);
+    listView.setAdapter(adapter);
+    (new AsyncTask<Void, Void, ArrayList<String>>() {
+      protected ArrayList<String> doInBackground(Void ... v) {
+        gen.init(input, longMode);
+        return gen.generate(SCROLL_BY);
+      }
+      protected void onPostExecute(ArrayList<String> list) {
+        shareList.addAll(list);
+        adapter.notifyDataSetChanged();
         if (pdia != null)
           pdia.dismiss();
         pdia = null;
+        listView.setOnScrollListener(new ScrollFiller(gen, shareList, adapter));
       }
-    })).execute(input);
+    }).execute(null);
   }
 
   private void share() {
@@ -157,6 +171,41 @@ public class AnagramActivity extends Activity {
     if (pdia != null) {
       state.putBoolean("inprogress", true);
       pdia = null;
+    }
+    state.putSerializable("gen", gen);
+  }
+
+  private static class ScrollFiller implements AbsListView.OnScrollListener {
+
+    private boolean filling;
+    private ArrayList<String> shareList;
+    private Generator gen;
+    private ArrayAdapter adapter;
+
+    public ScrollFiller(Generator gen, ArrayList<String> shareList, ArrayAdapter adapter) {
+      filling = false;
+      this.gen = gen;
+      this.shareList = shareList;
+      this.adapter = adapter;
+    }
+
+    public void onScrollStateChanged(AbsListView v, int state) {}
+
+    public void onScroll(AbsListView v, int first, int visible, int total) {
+      if (! filling)
+        if (total - (first + visible) < (SCROLL_BY/4)) {
+          filling = true;
+          (new AsyncTask<Void, Void, ArrayList<String>>() {
+            protected ArrayList<String> doInBackground(Void ... v) {
+              return gen.generate(SCROLL_BY);
+            }
+            protected void onPostExecute(ArrayList<String> list) {
+              shareList.addAll(list);
+              adapter.notifyDataSetChanged();
+              filling = false;
+            }
+          }).execute(null);
+        }
     }
   }
 
