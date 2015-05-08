@@ -185,7 +185,7 @@ JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Anagrams_init__Ljava
   int const init_failed = str ? anagrams_init(state, str, (*env)->GetStringLength(env, jstr)) : 1;
   if (str)
     (*env)->ReleaseStringChars(env, jstr, str);
-  jbyteArray const handle = (*env)->NewByteArray(env, sizeof(struct agsto *) / sizeof(jbyte));
+  jbyteArray const handle = init_failed ? NULL : (*env)->NewByteArray(env, sizeof(struct agsto *) / sizeof(jbyte));
   if (handle)
     {
       Java_us_achromaticmetaphor_agram_Anagrams_uninit(env, obj);
