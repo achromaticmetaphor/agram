@@ -8,12 +8,13 @@
 #include "is_within.h"
 #include "lcwc.h"
 
-static size_t filter_lc(const struct lc * * const out, const struct lc * const * wcs, const struct wc * const target)
+static size_t filter_lc(const struct lc * * const out, const struct lc * const * wcs, const struct wc * const target, const size_t wcslen)
 {
   const struct lc * * outp = out;
-  for (; *wcs; wcs++)
-    if(is_within_lw(*wcs, target))
-      *outp++ = *wcs;
+  size_t i;
+  for (i = 0; i < wcslen; i++)
+    if(is_within_lw(wcs[i], target))
+      *outp++ = wcs[i];
   *outp = NULL;
   return outp - out;
 }
@@ -54,7 +55,7 @@ top: ;
           next_level->wcs_in = state->wcsp;
           next_level->wcs = state->wcs + state->wcslen + 1;
           next_level->wcsp = next_level->wcs;
-          next_level->wcslen = filter_lc(next_level->wcs, next_level->wcs_in, &next_level->target);
+          next_level->wcslen = filter_lc(next_level->wcs, next_level->wcs_in, &next_level->target, state->wcslen - (state->wcsp - state->wcs));
           state->wcsp++;
           ostate->depth++;
           goto top;
@@ -97,7 +98,7 @@ int anagrams_init(struct agsto * const ostate, agram_dchar const * const str, si
   state->wcs_in = alift(words_counts, NWORDS);
   state->wcs = state->wcs_in ? malloc(sizeof(*state->wcs) * (NWORDS + 1) * prefsize) : NULL;
   state->wcsp = state->wcs;
-  state->wcslen = state->wcs ? filter_lc(state->wcs, state->wcs_in, &state->target) : 0;
+  state->wcslen = state->wcs ? filter_lc(state->wcs, state->wcs_in, &state->target, NWORDS) : 0;
   if (! state->wcs)
     return anagrams_destroy(ostate), 1;
 
