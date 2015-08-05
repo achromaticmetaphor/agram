@@ -64,12 +64,3 @@ int wc_init(struct wc * const target, const agram_dchar * const str, const size_
   target->nchars = lettercounts(target->counts, target->chars, str, slen);
   return 0;
 }
-
-void lcwc(struct wc * const a, const struct lc * const b)
-{
-  a->len = b->len;
-  a->nchars = b->nchars;
-  a->str = strbase + b->str;
-  a->chars = charsbase + b->chars;
-  a->counts = countsbase + b->chars;
-}

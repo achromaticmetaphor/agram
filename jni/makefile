@@ -13,7 +13,7 @@ agram_wc.o : agram_types.h
 anagram.o : agram_types.h agram_wc.h is_anagram.h lcwc.h
 anagrams.o : agram_types.h agram_wc.h is_anagram.h is_within.h lcwc.h
 is_anagram.o : agram_wc.h lcwc.h
-is_within.o : lcwc.h
+is_within.o : agram_wc.h lcwc.h
 lcwc.o : agram_types.h agram_wc.h astr.h lcwc.h lettercounts.h
 lettercounts.o : agram_types.h astr.h
 vector.o : vector.h

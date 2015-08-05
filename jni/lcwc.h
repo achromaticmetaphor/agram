@@ -25,6 +25,5 @@ struct wc
 int wc_sub(struct wc *, const struct wc *, const struct lc *);
 int wc_init(struct wc *, const agram_dchar *, size_t);
 void wc_free(struct wc *);
-void lcwc(struct wc *, const struct lc *);
 
 #endif
