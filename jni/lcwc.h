@@ -22,6 +22,7 @@ struct wc
   unsigned int * counts;
 };
 
+void wc_sub_s(struct wc *, const struct wc *, const struct lc *);
 int wc_sub(struct wc *, const struct wc *, const struct lc *);
 int wc_init(struct wc *, const agram_dchar *, size_t);
 void wc_free(struct wc *);

@@ -44,8 +44,10 @@ top: ;
       else
         {
           struct agst * const next_level = ostate->states + ostate->depth + 1;
-          if (wc_sub(&next_level->target, &state->target, *state->wcsp))
-            return (ostate->error = 1), 0;
+          size_t const scratch_offset = (ostate->depth + 1) * (ostate->states[0].target.nchars + 1);
+          next_level->target.chars = ostate->chars_scratch + scratch_offset;
+          next_level->target.counts = ostate->counts_scratch + scratch_offset;
+          wc_sub_s(&next_level->target, &state->target, *state->wcsp);
           next_level->offset = state->offset + (**state->wcsp).len + 1;
 #if AGRAM_ANDROID
           ostate->prefix[next_level->offset] = 32;
@@ -65,7 +67,6 @@ top: ;
     {
       if (ostate->depth)
         {
-          wc_free(&state->target);
           ostate->depth--;
           goto top;
         }
@@ -81,11 +82,14 @@ int anagrams_init(struct agsto * const ostate, agram_dchar const * const str, si
     return 1;
 
   const size_t prefsize = target.len * 2 + 1;
+  size_t const scratch_len = target.nchars + 1;
   ostate->states = malloc(sizeof(*ostate->states) * prefsize);
   ostate->depth = 0;
   ostate->prefix = ostate->states ? malloc(sizeof(*ostate->prefix) * prefsize) : NULL;
   ostate->error = 0;
-  if (! ostate->prefix)
+  ostate->chars_scratch = ostate->prefix ? malloc(sizeof(*ostate->chars_scratch) * scratch_len * prefsize) : NULL;
+  ostate->counts_scratch = ostate->chars_scratch ? malloc(sizeof(*ostate->counts_scratch) * scratch_len * prefsize) : NULL;
+  if (! ostate->counts_scratch)
     {
       wc_free(&target);
       anagrams_destroy(ostate);
@@ -109,8 +113,7 @@ void anagrams_destroy(struct agsto * const ostate)
 {
   if (! ostate)
     return;
-  for (; ostate->depth; ostate->depth--)
-    wc_free(&ostate->states[ostate->depth].target);
+  ostate->depth = 0;
   struct agst * const state = ostate->states;
   if (state)
     {
@@ -122,6 +125,10 @@ void anagrams_destroy(struct agsto * const ostate)
   ostate->prefix = NULL;
   free(ostate->states);
   ostate->states = NULL;
+  free(ostate->chars_scratch);
+  ostate->chars_scratch = NULL;
+  free(ostate->counts_scratch);
+  ostate->counts_scratch = NULL;
 }
 
 int anagrams(agram_dchar const * const str, size_t const len, int (* const cb)(agram_dchar const *, size_t, void *), void * const cba)

@@ -20,6 +20,8 @@ struct agsto {
   size_t depth;
   agram_dchar * prefix;
   int error;
+  agram_cpt * chars_scratch;
+  unsigned int * counts_scratch;
 };
 
 int anagrams_init(struct agsto *, agram_dchar const *, size_t);
