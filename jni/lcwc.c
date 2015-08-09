@@ -7,6 +7,15 @@
 #include "lcwc.h"
 #include "lettercounts.h"
 
+unsigned long int wc_hash_chars(agram_cpt const * const chars, unsigned int const nchars)
+{
+  unsigned long int h = 0;
+  unsigned int i;
+  for (i = 0; i < nchars; i++)
+    h |= 1 << (chars[i] % 32);
+  return h;
+}
+
 void wc_sub_s(struct wc * const out, const struct wc * const a, const struct lc * const b)
 {
   unsigned int a_i;
@@ -33,6 +42,7 @@ void wc_sub_s(struct wc * const out, const struct wc * const a, const struct lc 
       }
   out->chars[o_i] = 0;
   out->nchars = o_i;
+  out->hash = wc_hash_chars(out->chars, out->nchars);
 }
 
 int wc_sub(struct wc * const out, const struct wc * const a, const struct lc * const b)
@@ -64,5 +74,6 @@ int wc_init(struct wc * const target, const agram_dchar * const str, const size_
   if ((! target->chars) || (! target->counts))
     return wc_free(target), 1;
   target->nchars = lettercounts(target->counts, target->chars, str, slen);
+  target->hash = wc_hash_chars(target->chars, target->nchars);
   return 0;
 }

@@ -32,6 +32,7 @@ static int compile_wl_s(struct cwlcbs const * const cbs, void * const cba, struc
       index.nchars = lettercounts(counts, chars, str, index.len);
       index.str = stroff;
       index.chars = charsoff;
+      index.hash = wc_hash_chars(chars, index.nchars);
       stroff += index.len;
       charsoff += index.nchars;
 

@@ -3,6 +3,8 @@
 
 int is_within_lw(const struct lc * const a, const struct wc * const b)
 {
+  if ((a->hash & b->hash) != a->hash)
+    return 0;
   agram_cpt * const a_chars = a->chars + charsbase;
   unsigned int * const a_counts = a->chars + countsbase;
   unsigned int i = 0, j = 0;
