@@ -9,7 +9,6 @@
 struct agst {
   struct wc target;
   size_t offset;
-  const struct lc * * wcs_in;
   const struct lc * * wcs;
   size_t wcslen;
   const struct lc * * wcsp;
@@ -21,6 +20,7 @@ struct agsto {
   agram_dchar * prefix;
   agram_cpt * chars_scratch;
   unsigned int * counts_scratch;
+  const struct lc * * wcs_in;
 };
 
 int anagrams_init(struct agsto *, agram_dchar const *, size_t);

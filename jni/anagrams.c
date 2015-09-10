@@ -54,10 +54,9 @@ top: ;
 #else
           ostate->prefix[next_level->offset] = ' ';
 #endif
-          next_level->wcs_in = state->wcsp;
           next_level->wcs = state->wcs + state->wcslen + 1;
           next_level->wcsp = next_level->wcs;
-          next_level->wcslen = filter_lc(next_level->wcs, next_level->wcs_in, &next_level->target, state->wcslen - (state->wcsp - state->wcs));
+          next_level->wcslen = filter_lc(next_level->wcs, state->wcsp, &next_level->target, state->wcslen - (state->wcsp - state->wcs));
           state->wcsp++;
           ostate->depth++;
           goto top;
@@ -88,7 +87,8 @@ int anagrams_init(struct agsto * const ostate, agram_dchar const * const str, si
   ostate->prefix = ostate->states ? malloc(sizeof(*ostate->prefix) * prefsize) : NULL;
   ostate->chars_scratch = ostate->prefix ? malloc(sizeof(*ostate->chars_scratch) * scratch_len * prefsize) : NULL;
   ostate->counts_scratch = ostate->chars_scratch ? malloc(sizeof(*ostate->counts_scratch) * scratch_len * prefsize) : NULL;
-  if (! ostate->counts_scratch)
+  ostate->wcs_in = ostate->counts_scratch ? alift(words_counts, NWORDS) : NULL;
+  if (! ostate->wcs_in)
     {
       wc_free(&target);
       anagrams_destroy(ostate);
@@ -98,10 +98,9 @@ int anagrams_init(struct agsto * const ostate, agram_dchar const * const str, si
   struct agst * const state = ostate->states;
   state->target = target;
   state->offset = 0;
-  state->wcs_in = alift(words_counts, NWORDS);
-  state->wcs = state->wcs_in ? malloc(sizeof(*state->wcs) * (NWORDS + 1) * prefsize) : NULL;
+  state->wcs = ostate->wcs_in ? malloc(sizeof(*state->wcs) * (NWORDS + 1) * prefsize) : NULL;
   state->wcsp = state->wcs;
-  state->wcslen = state->wcs ? filter_lc(state->wcs, state->wcs_in, &state->target, NWORDS) : 0;
+  state->wcslen = state->wcs ? filter_lc(state->wcs, ostate->wcs_in, &state->target, NWORDS) : 0;
   if (! state->wcs)
     return anagrams_destroy(ostate), 1;
 
@@ -118,8 +117,9 @@ void anagrams_destroy(struct agsto * const ostate)
     {
       wc_free(&state->target);
       free(state->wcs);
-      free(state->wcs_in);
     }
+  free(ostate->wcs_in);
+  ostate->wcs_in = NULL;
   free(ostate->prefix);
   ostate->prefix = NULL;
   free(ostate->states);
