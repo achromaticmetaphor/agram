@@ -19,7 +19,6 @@ struct agsto {
   struct agst * states;
   size_t depth;
   agram_dchar * prefix;
-  int error;
   agram_cpt * chars_scratch;
   unsigned int * counts_scratch;
 };

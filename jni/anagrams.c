@@ -86,7 +86,6 @@ int anagrams_init(struct agsto * const ostate, agram_dchar const * const str, si
   ostate->states = malloc(sizeof(*ostate->states) * prefsize);
   ostate->depth = 0;
   ostate->prefix = ostate->states ? malloc(sizeof(*ostate->prefix) * prefsize) : NULL;
-  ostate->error = 0;
   ostate->chars_scratch = ostate->prefix ? malloc(sizeof(*ostate->chars_scratch) * scratch_len * prefsize) : NULL;
   ostate->counts_scratch = ostate->chars_scratch ? malloc(sizeof(*ostate->counts_scratch) * scratch_len * prefsize) : NULL;
   if (! ostate->counts_scratch)
@@ -144,7 +143,6 @@ int anagrams(agram_dchar const * const str, size_t const len, int (* const cb)(a
         rval = 2;
         break;
       }
-  rval |= ostate.error;
   anagrams_destroy(&ostate);
   return rval;
 }
