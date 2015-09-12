@@ -118,16 +118,13 @@ void anagrams_destroy(struct agsto * const ostate)
       wc_free(&state->target);
       free(state->wcs);
     }
-  free(ostate->wcs_in);
-  ostate->wcs_in = NULL;
-  free(ostate->prefix);
-  ostate->prefix = NULL;
-  free(ostate->states);
-  ostate->states = NULL;
-  free(ostate->chars_scratch);
-  ostate->chars_scratch = NULL;
-  free(ostate->counts_scratch);
-  ostate->counts_scratch = NULL;
+#define FREE_AND_CLEAR(lval) do { free(lval); lval = NULL; } while (0)
+  FREE_AND_CLEAR(ostate->wcs_in);
+  FREE_AND_CLEAR(ostate->prefix);
+  FREE_AND_CLEAR(ostate->states);
+  FREE_AND_CLEAR(ostate->chars_scratch);
+  FREE_AND_CLEAR(ostate->counts_scratch);
+#undef FREE_AND_CLEAR
 }
 
 int anagrams(agram_dchar const * const str, size_t const len, int (* const cb)(agram_dchar const *, size_t, void *), void * const cba)
