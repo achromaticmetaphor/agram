@@ -1,11 +1,13 @@
 package us.achromaticmetaphor.agram;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
@@ -35,6 +37,7 @@ public class MainActivity extends Activity {
 
   private static String menuAbout = "About";
   private static final int REQUEST_FILEBROWSER = 1;
+  private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 2;
   private static final String builtinWordlist = "SCOWL (built-in)";
   private static final String selectedWordlistKey = "wordlist.label";
   private static final String wordlistsFilename = Wordlist.transformLabel("wordlists");
@@ -157,7 +160,10 @@ public class MainActivity extends Activity {
     });
     build.setNeutralButton("Choose file", new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface di, int i) {
-        startActivityForResult(new Intent(MainActivity.this, FileBrowser.class), REQUEST_FILEBROWSER);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+          requestPermissions(new String [] {Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
+        else
+          startActivityForResult(new Intent(MainActivity.this, FileBrowser.class), REQUEST_FILEBROWSER);
       }
     });
     build.setNegativeButton("Cancel", null);
@@ -226,6 +232,13 @@ public class MainActivity extends Activity {
       pdia.dismiss();
       pdia = null;
     }
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int request, String [] perms, int [] results) {
+    if (request == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE && perms.length == 1
+     && perms[0].equals(Manifest.permission.READ_EXTERNAL_STORAGE) && results[0] == PackageManager.PERMISSION_GRANTED)
+      startActivityForResult(new Intent(MainActivity.this, FileBrowser.class), REQUEST_FILEBROWSER);
   }
 
 }
