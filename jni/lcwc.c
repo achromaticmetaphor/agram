@@ -23,7 +23,7 @@ void wc_sub_s(struct wc * const out, const struct wc * const a, const struct lc 
   unsigned int o_i = 0;
   out->len = a->len - b->len;
   for (a_i = 0; a_i < a->nchars; a_i++)
-    if (a->chars[a_i] == charsbase[b->chars+b_i])
+    if (b_i < b->nchars && a->chars[a_i] == charsbase[b->chars+b_i])
       {
         const unsigned int diff = a->counts[a_i] - countsbase[b->chars+b_i];
         if (diff)
@@ -40,7 +40,6 @@ void wc_sub_s(struct wc * const out, const struct wc * const a, const struct lc 
         out->counts[o_i] = a->counts[a_i];
         o_i++;
       }
-  out->chars[o_i] = 0;
   out->nchars = o_i;
   out->hash = wc_hash_chars(out->chars, out->nchars);
 }
