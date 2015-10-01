@@ -16,7 +16,7 @@ int is_within_lw(const struct lc * const a, const struct wc * const b)
       if (a_chars[i] < b->chars[j])
         return 0;
 
-      if (a_chars[i] == b->chars[j])
+      else if (a_chars[i] == b->chars[j])
         {
           if (a_counts[i] > b->counts[j])
             return 0;
@@ -24,7 +24,7 @@ int is_within_lw(const struct lc * const a, const struct wc * const b)
             i++;
         }
 
-      if (a_chars[i] > b->chars[j])
+      else if (a_chars[i] > b->chars[j])
         j++;
     }
 
