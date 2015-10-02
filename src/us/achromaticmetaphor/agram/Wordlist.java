@@ -13,6 +13,9 @@ import java.security.NoSuchAlgorithmException;
 
 public class Wordlist {
 
+  public static byte currentVersion = 3;
+  private static byte [] oldVersions = {2};
+
   static {
     Native.load();
   }
@@ -23,10 +26,10 @@ public class Wordlist {
 
   private static native byte [] platform();
 
-  public static String transformLabel(String label) {
+  public static String transformLabel(String label, byte version) {
     try {
       MessageDigest dig = MessageDigest.getInstance("SHA-256");
-      dig.update(new byte[] {2});
+      dig.update(new byte[] {version});
       dig.update(platform());
       dig.update(label.getBytes());
       return Base64.encodeToString(dig.digest(), Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
@@ -36,17 +39,35 @@ public class Wordlist {
     }
   }
 
+  public static String transformLabel(String label) {
+    return transformLabel(label, currentVersion);
+  }
+
   public static void load(File filesDir, InputStream in, String label) {
     load(filesDir, in, label, null);
   }
 
-  public static void load(final File filesDir, final InputStream in, String label, final OnCompleteListener listen) {
-    final String filename = transformLabel(label);
+  private static native boolean upgrade(String oldpath, String newpath, byte oldversion);
+
+  private static boolean upgrade(File filesDir, String label) {
+    for (byte ver : oldVersions) {
+      File oldList = new File(filesDir, transformLabel(label, ver));
+      File newList = new File(filesDir, transformLabel(label));
+      if (oldList.exists() && upgrade(oldList.getAbsolutePath(), newList.getAbsolutePath(), ver))
+        return true;
+    }
+    return false;
+  }
+
+  public static void load(final File filesDir, final InputStream in, final String label, final OnCompleteListener listen) {
     (new AsyncTask<Void, Void, Boolean>() {
       protected Boolean doInBackground(Void... v) {
         synchronized (Wordlist.class) {
-          File wlfile = new File(filesDir, filename);
-          return (wlfile.exists() && Native.init(wlfile.getAbsolutePath())) || Native.init(wlfile.getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
+          File wlfile = new File(filesDir, transformLabel(label));
+          if (wlfile.exists() || upgrade(filesDir, label))
+            return Native.init(wlfile.getAbsolutePath());
+          else
+            return Native.init(wlfile.getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
         }
       }
       protected void onPostExecute(Boolean b) {

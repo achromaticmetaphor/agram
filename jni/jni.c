@@ -7,6 +7,7 @@
 #include "anagram.h"
 #include "anagrams.h"
 #include "wc.h"
+#include "wl_upgrade.h"
 #include "words_from.h"
 
 JNIEXPORT jbyteArray JNICALL Java_us_achromaticmetaphor_agram_Wordlist_platform
@@ -228,4 +229,23 @@ JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_generate__I
         break;
     }
   return al.alinstance;
+}
+
+JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Wordlist_upgrade
+  (JNIEnv * const env, jclass const class, jstring const jfnold, jstring const jfnnew, jbyte const version)
+{
+  if (! agram_wl_can_upgrade(version))
+    return JNI_FALSE;
+
+  const char * const fnold = (*env)->GetStringUTFChars(env, jfnold, 0);
+  const char * const fnnew = fnold ? (*env)->GetStringUTFChars(env, jfnnew, 0) : NULL;
+
+  int const failure = fnnew ? agram_wl_upgrade(fnold, fnnew, version) : 1;
+
+  if (fnnew)
+    (*env)->ReleaseStringUTFChars(env, jfnnew, fnnew);
+  if (fnold)
+    (*env)->ReleaseStringUTFChars(env, jfnold, fnold);
+
+  return failure ? JNI_FALSE : JNI_TRUE;
 }

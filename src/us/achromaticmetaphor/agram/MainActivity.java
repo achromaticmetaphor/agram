@@ -40,7 +40,8 @@ public class MainActivity extends Activity {
   private static final int REQUEST_PERMISSION_READ_EXTERNAL_STORAGE = 2;
   private static final String builtinWordlist = "SCOWL (built-in)";
   private static final String selectedWordlistKey = "wordlist.label";
-  private static final String wordlistsFilename = Wordlist.transformLabel("wordlists");
+  private static final byte wordlistsVersion = 2;
+  private static final String wordlistsFilename = Wordlist.transformLabel("wordlists", wordlistsVersion);
 
   private ProgressDialog pdia;
   private String inprogressFilename;

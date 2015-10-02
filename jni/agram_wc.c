@@ -16,16 +16,16 @@
 agram_size NWORDS = 0;
 
 struct lc * words_counts = NULL;
-static size_t words_counts_len = 0;
+size_t words_counts_len = 0;
 
 agram_dchar * strbase = NULL;
-static size_t strbase_len = 0;
+size_t strbase_len = 0;
 
 agram_cpt * charsbase = NULL;
-static size_t charsbase_len = 0;
+size_t charsbase_len = 0;
 
 unsigned int * countsbase = NULL;
-static size_t countsbase_len = 0;
+size_t countsbase_len = 0;
 
 static void unload_wl_s(const int n)
 {
