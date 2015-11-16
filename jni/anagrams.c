@@ -8,29 +8,21 @@
 #include "is_within.h"
 #include "lcwc.h"
 
-static size_t filter_lc(const struct lc * * const out, const struct lc * const * wcs, const struct wc * const target, const size_t wcslen)
-{
-  const struct lc * * outp = out;
-  size_t i;
-  for (i = 0; i < wcslen; i++)
-    if(is_within_lw(wcs[i], target))
-      *outp++ = wcs[i];
-  *outp = NULL;
-  return outp - out;
-}
+#define FILTER_FUN(FUN, POINTER, DEREF) \
+  static size_t FUN (const struct lc * * const out, const struct lc * const POINTER wcs, const struct wc * const target, const size_t wcslen) \
+  { \
+    const struct lc * * outp = out; \
+    size_t i; \
+    for (i = 0; i < wcslen; i++) \
+      if(is_within_lw(DEREF (wcs + i), target)) \
+        *outp++ = DEREF (wcs + i); \
+    *outp = NULL; \
+    return outp - out; \
+  }
 
-static const struct lc * * alift(const struct lc * const wcs, const size_t len)
-{
-  size_t i;
-  const struct lc * * const out = malloc(sizeof(*out) * (len+1));
-  if (out)
-    {
-      for (i = 0; i < len; i++)
-        out[i] = wcs+i;
-      out[len] = NULL;
-    }
-  return out;
-}
+FILTER_FUN(filter_lc, * const, *)
+FILTER_FUN(filter_lc_alift, , )
+#undef FILTER_FUN
 
 size_t anagrams_single(struct agsto * const ostate)
 {
@@ -87,8 +79,7 @@ int anagrams_init(struct agsto * const ostate, agram_dchar const * const str, si
   ostate->prefix = ostate->states ? malloc(sizeof(*ostate->prefix) * prefsize) : NULL;
   ostate->chars_scratch = ostate->prefix ? malloc(sizeof(*ostate->chars_scratch) * scratch_len * prefsize) : NULL;
   ostate->counts_scratch = ostate->chars_scratch ? malloc(sizeof(*ostate->counts_scratch) * scratch_len * prefsize) : NULL;
-  ostate->wcs_in = ostate->counts_scratch ? alift(words_counts, NWORDS) : NULL;
-  if (! ostate->wcs_in)
+  if (! ostate->counts_scratch)
     {
       wc_free(&target);
       anagrams_destroy(ostate);
@@ -98,9 +89,9 @@ int anagrams_init(struct agsto * const ostate, agram_dchar const * const str, si
   struct agst * const state = ostate->states;
   state->target = target;
   state->offset = 0;
-  state->wcs = ostate->wcs_in ? malloc(sizeof(*state->wcs) * (NWORDS + 1) * prefsize) : NULL;
+  state->wcs = malloc(sizeof(*state->wcs) * (NWORDS + 1) * prefsize);
   state->wcsp = state->wcs;
-  state->wcslen = state->wcs ? filter_lc(state->wcs, ostate->wcs_in, &state->target, NWORDS) : 0;
+  state->wcslen = state->wcs ? filter_lc_alift(state->wcs, words_counts, &state->target, NWORDS) : 0;
   if (! state->wcs)
     return anagrams_destroy(ostate), 1;
 
@@ -119,7 +110,6 @@ void anagrams_destroy(struct agsto * const ostate)
       free(state->wcs);
     }
 #define FREE_AND_CLEAR(lval) do { free(lval); lval = NULL; } while (0)
-  FREE_AND_CLEAR(ostate->wcs_in);
   FREE_AND_CLEAR(ostate->prefix);
   FREE_AND_CLEAR(ostate->states);
   FREE_AND_CLEAR(ostate->chars_scratch);
