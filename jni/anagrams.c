@@ -66,35 +66,45 @@ top: ;
     }
 }
 
+static void agsto_free(struct agsto * const ostate)
+{
+#define FREE_AND_CLEAR(lval) do { free(lval); lval = NULL; } while (0)
+  FREE_AND_CLEAR(ostate->prefix);
+  FREE_AND_CLEAR(ostate->states);
+  FREE_AND_CLEAR(ostate->chars_scratch);
+  FREE_AND_CLEAR(ostate->counts_scratch);
+#undef FREE_AND_CLEAR
+}
+
+static int agsto_alloc(struct agsto * const ostate, size_t const len, size_t const nchars)
+{
+  size_t const prefsize = len * 2 + 1;
+  size_t const scratch_len = nchars + 1;
+  ostate->states = malloc(sizeof(*ostate->states) * prefsize);
+  ostate->prefix = ostate->states ? malloc(sizeof(*ostate->prefix) * prefsize) : NULL;
+  ostate->chars_scratch = ostate->prefix ? malloc(sizeof(*ostate->chars_scratch) * scratch_len * prefsize) : NULL;
+  ostate->counts_scratch = ostate->chars_scratch ? malloc(sizeof(*ostate->counts_scratch) * scratch_len * prefsize) : NULL;
+  if (ostate->counts_scratch
+      && (ostate->states[0].wcs = malloc(sizeof(*ostate->states[0].wcs) * (NWORDS + 1) * prefsize)))
+    return 0;
+  else
+    return agsto_free(ostate), 1;
+}
+
 int anagrams_init(struct agsto * const ostate, agram_dchar const * const str, size_t const len)
 {
   struct wc target;
   if (wc_init(&target, str, len))
     return 1;
 
-  const size_t prefsize = target.len * 2 + 1;
-  size_t const scratch_len = target.nchars + 1;
-  ostate->states = malloc(sizeof(*ostate->states) * prefsize);
+  if (agsto_alloc(ostate, target.len, target.nchars))
+    return wc_free(&target), 1;
+
   ostate->depth = 0;
-  ostate->prefix = ostate->states ? malloc(sizeof(*ostate->prefix) * prefsize) : NULL;
-  ostate->chars_scratch = ostate->prefix ? malloc(sizeof(*ostate->chars_scratch) * scratch_len * prefsize) : NULL;
-  ostate->counts_scratch = ostate->chars_scratch ? malloc(sizeof(*ostate->counts_scratch) * scratch_len * prefsize) : NULL;
-  if (! ostate->counts_scratch)
-    {
-      wc_free(&target);
-      anagrams_destroy(ostate);
-      return 1;
-    }
-
-  struct agst * const state = ostate->states;
-  state->target = target;
-  state->offset = 0;
-  state->wcs = malloc(sizeof(*state->wcs) * (NWORDS + 1) * prefsize);
-  state->wcsp = state->wcs;
-  state->wcslen = state->wcs ? filter_lc_alift(state->wcs, words_counts, &state->target, NWORDS) : 0;
-  if (! state->wcs)
-    return anagrams_destroy(ostate), 1;
-
+  ostate->states[0].target = target;
+  ostate->states[0].offset = 0;
+  ostate->states[0].wcsp = ostate->states[0].wcs;
+  ostate->states[0].wcslen = filter_lc_alift(ostate->states[0].wcs, words_counts, &target, NWORDS);
   return 0;
 }
 
@@ -109,12 +119,7 @@ void anagrams_destroy(struct agsto * const ostate)
       wc_free(&state->target);
       free(state->wcs);
     }
-#define FREE_AND_CLEAR(lval) do { free(lval); lval = NULL; } while (0)
-  FREE_AND_CLEAR(ostate->prefix);
-  FREE_AND_CLEAR(ostate->states);
-  FREE_AND_CLEAR(ostate->chars_scratch);
-  FREE_AND_CLEAR(ostate->counts_scratch);
-#undef FREE_AND_CLEAR
+  agsto_free(ostate);
 }
 
 int anagrams(agram_dchar const * const str, size_t const len, int (* const cb)(agram_dchar const *, size_t, void *), void * const cba)
