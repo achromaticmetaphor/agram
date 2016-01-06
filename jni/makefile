@@ -2,8 +2,8 @@
 .SUFFIXES:
 .SUFFIXES: .c .o
 
-agram : agram.o agram_wc.o anagram.o anagrams.o is_anagram.o is_within.o lcwc.o lettercounts.o vector.o wc.o wordlist.o words_from.o xdgwl.o
-	c99 -o agram agram.o agram_wc.o anagram.o anagrams.o is_anagram.o is_within.o lcwc.o lettercounts.o vector.o wc.o wordlist.o words_from.o xdgwl.o
+agram : agram.o agram_wc.o anagram.o anagrams.o is_anagram.o is_within.o lcwc.o lettercounts.o vector.o wc.o words_from.o xdgwl.o
+	c99 -o agram agram.o agram_wc.o anagram.o anagrams.o is_anagram.o is_within.o lcwc.o lettercounts.o vector.o wc.o words_from.o xdgwl.o
 
 .c.o :
 	c99 -o $@ -c $<
@@ -19,11 +19,4 @@ lettercounts.o : agram_types.h astr.h
 vector.o : vector.h
 wc.o : agram_types.h agram_wc.h lcwc.h lettercounts.h vector.h wc.h
 words_from.o : agram_types.h agram_wc.h is_within.h lcwc.h
-xdgwl.o : agram_types.h lcwc.h wc.h wordlist.h
-
-wordlist.c : ../assets/words
-	>wordlist.c echo 'const char * const wordlist[] ='
-	>>wordlist.c echo '{'
-	>>wordlist.c sed -e 's/^/"/' -e 's/$$/",/' ../assets/words
-	>>wordlist.c echo '0'
-	>>wordlist.c echo '};'
+xdgwl.o : agram_types.h lcwc.h wc.h
