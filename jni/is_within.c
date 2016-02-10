@@ -1,12 +1,12 @@
-#include "agram_wc.h"
 #include "lcwc.h"
+#include "wordlist.h"
 
-int is_within_lw(const struct lc * const a, const struct wc * const b)
+int is_within_lw(const struct wordlist * const wl, const struct lc * const a, const struct wc * const b)
 {
   if ((a->hash & b->hash) != a->hash)
     return 0;
-  agram_cpt * const a_chars = a->chars + charsbase;
-  unsigned int * const a_counts = a->chars + countsbase;
+  agram_cpt * const a_chars = a->chars + wl->charsbase;
+  unsigned int * const a_counts = a->chars + wl->countsbase;
   unsigned int i = 0, j = 0;
   while (i < a->nchars)
     {

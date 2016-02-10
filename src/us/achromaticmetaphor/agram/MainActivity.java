@@ -43,6 +43,7 @@ public class MainActivity extends Activity {
   private static final byte wordlistsVersion = 2;
   private static final String wordlistsFilename = Wordlist.transformLabel("wordlists", wordlistsVersion);
 
+  private Wordlist wordlist;
   private ProgressDialog pdia;
   private String inprogressFilename;
   private String inprogressLabel;
@@ -58,10 +59,11 @@ public class MainActivity extends Activity {
     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       public void onItemClick(AdapterView<?> av, View v, int pos, long id) {
         Intent intent = new Intent(MainActivity.this, AnagramActivity.class);
-        intent.putExtra("generator", pos == 0 ? new Anagram() : pos == 1 ? new Anagrams() : pos == 2 ? new WordGenerator() : new WordsFrom());
+        intent.putExtra("generator", pos == 0 ? new Anagram(wordlist) : pos == 1 ? new Anagrams(wordlist) : pos == 2 ? new WordGenerator(wordlist) : new WordsFrom(wordlist));
         startActivity(intent);
       }
     });
+    wordlist = new Wordlist();
     SharedPreferences prefs = getSharedPreferences("us.achromaticmetaphor.agram", MODE_PRIVATE);
     String selectedWordlist = prefs.getString(selectedWordlistKey, builtinWordlist);
     if (! getWordlists().contains(selectedWordlist))
@@ -77,7 +79,7 @@ public class MainActivity extends Activity {
     inprogressLabel = label;
     pdia = ProgressDialog.show(this, "Loading word list", "Please wait", true, false);
     try {
-      Wordlist.load(getFilesDir(), filename.equals("") ? getResources().getAssets().open("words") : new FileInputStream(filename), label, new Wordlist.OnCompleteListener() {
+      wordlist.load(getFilesDir(), filename.equals("") ? getResources().getAssets().open("words") : new FileInputStream(filename), label, new Wordlist.OnCompleteListener() {
         public void onComplete(boolean success) {
           if (success)
             enrollWordlist(label);

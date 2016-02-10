@@ -5,6 +5,7 @@
 
 #include "agram_types.h"
 #include "lcwc.h"
+#include "wordlist.h"
 
 struct agst {
   struct wc target;
@@ -20,11 +21,12 @@ struct agsto {
   agram_dchar * prefix;
   agram_cpt * chars_scratch;
   unsigned int * counts_scratch;
+  const struct wordlist * wl;
 };
 
-int anagrams_init(struct agsto *, agram_dchar const *, size_t);
+int anagrams_init(struct agsto *, const struct wordlist *, agram_dchar const *, size_t);
 size_t anagrams_single(struct agsto *);
 void anagrams_destroy(struct agsto *);
-int anagrams(agram_dchar const *, size_t, int (*)(agram_dchar const *, size_t, void *), void *);
+int anagrams(const struct wordlist *, agram_dchar const *, size_t, int (*)(agram_dchar const *, size_t, void *), void *);
 
 #endif

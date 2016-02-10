@@ -2,7 +2,8 @@
 #define IS_ANAGRAM_H
 
 #include "lcwc.h"
+#include "wordlist.h"
 
-int is_anagram(const struct wc *, const struct lc *);
+int is_anagram(const struct wordlist *, const struct wc *, const struct lc *);
 
 #endif

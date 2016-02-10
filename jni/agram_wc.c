@@ -5,6 +5,7 @@
 
 #include "agram_types.h"
 #include "lcwc.h"
+#include "wordlist.h"
 
 #if AGRAM_MMAP
 #include <fcntl.h>
@@ -13,21 +14,7 @@
 #include <unistd.h>
 #endif
 
-agram_size NWORDS = 0;
-
-struct lc * words_counts = NULL;
-size_t words_counts_len = 0;
-
-agram_dchar * strbase = NULL;
-size_t strbase_len = 0;
-
-agram_cpt * charsbase = NULL;
-size_t charsbase_len = 0;
-
-unsigned int * countsbase = NULL;
-size_t countsbase_len = 0;
-
-static void unload_wl_s(const int n)
+static void unload_wl_s(struct wordlist * const wl, const int n)
 {
   switch(n)
     {
@@ -44,23 +31,23 @@ static void unload_wl_s(const int n)
 
       default:
       case 5:
-        MUNMAP(countsbase)
+        MUNMAP(wl->countsbase)
       case 4:
-        MUNMAP(charsbase)
+        MUNMAP(wl->charsbase)
       case 3:
-        MUNMAP(strbase)
+        MUNMAP(wl->strbase)
       case 2:
-        MUNMAP(words_counts)
+        MUNMAP(wl->words_counts)
       case 1:
-        NWORDS = 0;
+        wl->nwords = 0;
       case 0:
         ;
     }
 }
 
-void unload_wl(void)
+void unload_wl(struct wordlist * const wl)
 {
-  unload_wl_s(5);
+  unload_wl_s(wl, 5);
 }
 
 static void * omap(const char * const fn, long const tell)
@@ -89,32 +76,31 @@ static void * omap(const char * const fn, long const tell)
 #endif
 }
 
-int load_wl(const char * const fn)
+int load_wl(struct wordlist * const wl, const char * const fn)
 {
-  unload_wl();
   long tells[4];
   FILE * const fi = fopen(fn, "rb");
   if (! fi)
     return 1;
 
-  const int failed = fread(&NWORDS, sizeof(NWORDS), 1, fi) != 1 || fread(tells, sizeof(*tells), 4, fi) != 4;
+  const int failed = fread(&wl->nwords, sizeof(wl->nwords), 1, fi) != 1 || fread(tells, sizeof(*tells), 4, fi) != 4;
   fclose(fi);
   if (failed)
-    return unload_wl_s(1), 1;
+    return unload_wl_s(wl, 1), 1;
 
   char fne[strlen(fn)+3];
 
-#define OMAP(suffix, mapping, depth, tell) \
+#define OMAP(suffix, wl, mapping, depth, tell) \
   sprintf(fne, "%s." # suffix, fn); \
-  mapping = omap(fne, tell); \
-  if (! mapping) \
-    return unload_wl_s(depth), 1; \
-  mapping ## _len = tell;
+  wl->mapping = omap(fne, tell); \
+  if (! wl->mapping) \
+    return unload_wl_s(wl, depth), 1; \
+  wl->mapping ## _len = tell;
 
-  OMAP(i, words_counts, 1, tells[0])
-  OMAP(s, strbase, 2, tells[1])
-  OMAP(c, charsbase, 3, tells[2])
-  OMAP(n, countsbase, 4, tells[3])
+  OMAP(i, wl, words_counts, 1, tells[0])
+  OMAP(s, wl, strbase, 2, tells[1])
+  OMAP(c, wl, charsbase, 3, tells[2])
+  OMAP(n, wl, countsbase, 4, tells[3])
 
   return 0;
 }

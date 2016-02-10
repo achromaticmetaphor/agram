@@ -4,7 +4,8 @@
 #include <stddef.h>
 
 #include "agram_types.h"
+#include "wordlist.h"
 
-int anagram(const agram_dchar *, size_t, int (*)(agram_dchar const *, size_t, void *), void *);
+int anagram(const struct wordlist *, const agram_dchar *, size_t, int (*)(agram_dchar const *, size_t, void *), void *);
 
 #endif

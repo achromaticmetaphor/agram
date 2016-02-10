@@ -4,7 +4,12 @@ import java.util.ArrayList;
 
 public class WordGenerator implements Generator, Refreshable {
 
+  private final Wordlist wordlist;
   private int wordsRemaining = -1;
+
+  public WordGenerator(Wordlist wl) {
+    wordlist = wl;
+  }
 
   private static int getInt(String s, int def) {
     try {
@@ -16,7 +21,7 @@ public class WordGenerator implements Generator, Refreshable {
   }
 
   public ArrayList<String> generate(String s) {
-    return Word.pick(getInt(s, 1));
+    return Word.pick(wordlist, getInt(s, 1));
   }
 
   public ArrayList<String> generate(String s, boolean b) {
@@ -44,7 +49,7 @@ public class WordGenerator implements Generator, Refreshable {
       n = Math.min(wordsRemaining, n);
       wordsRemaining -= n;
     }
-    return Word.pick(n);
+    return Word.pick(wordlist, n);
   }
 
 }

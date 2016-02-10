@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #include "agram_types.h"
+#include "wordlist.h"
 
 struct lc
 {
@@ -24,8 +25,8 @@ struct wc
   unsigned long int hash;
 };
 
-void wc_sub_s(struct wc *, const struct wc *, const struct lc *);
-int wc_sub(struct wc *, const struct wc *, const struct lc *);
+void wc_sub_s(const struct wordlist *, struct wc *, const struct wc *, const struct lc *);
+int wc_sub(const struct wordlist *, struct wc *, const struct wc *, const struct lc *);
 int wc_init(struct wc *, const agram_dchar *, size_t);
 void wc_free(struct wc *);
 unsigned long int wc_hash_chars(agram_cpt const *, unsigned int);

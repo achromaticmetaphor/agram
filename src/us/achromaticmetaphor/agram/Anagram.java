@@ -6,6 +6,11 @@ public class Anagram implements Generator {
 
   private String s = "";
   private boolean finished = true;
+  private final Wordlist wordlist;
+
+  public Anagram(Wordlist wl) {
+    wordlist = wl;
+  }
 
   public native ArrayList<String> generate(String s);
 

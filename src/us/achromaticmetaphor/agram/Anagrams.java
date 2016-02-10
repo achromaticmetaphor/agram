@@ -5,6 +5,11 @@ import java.util.ArrayList;
 public class Anagrams implements Generator {
 
   private byte [] handle = null;
+  private final Wordlist wordlist;
+
+  public Anagrams(Wordlist wl) {
+    wordlist = wl;
+  }
 
   public native ArrayList<String> generate(String s);
 

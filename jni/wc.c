@@ -140,7 +140,7 @@ static int mem_all(void * const vostate)
   return 0;
 }
 
-int build_wl(struct cwlcbs const * const cbs, void * const cba)
+int build_wl(struct wordlist * const wl, struct cwlcbs const * const cbs, void * const cba)
 {
   struct mem_ostate ostate;
   ostate.NWORDS = 0;
@@ -160,12 +160,11 @@ int build_wl(struct cwlcbs const * const cbs, void * const cba)
     }
   else
     {
-      unload_wl();
-      NWORDS = ostate.NWORDS;
-      words_counts = (void *) ostate.words_counts.vector;
-      strbase = (void *) ostate.strbase.vector;
-      charsbase = (void *) ostate.charsbase.vector;
-      countsbase = (void *) ostate.countsbase.vector;
+      wl->nwords = ostate.NWORDS;
+      wl->words_counts = (void *) ostate.words_counts.vector;
+      wl->strbase = (void *) ostate.strbase.vector;
+      wl->charsbase = (void *) ostate.charsbase.vector;
+      wl->countsbase = (void *) ostate.countsbase.vector;
       return 0;
     }
 }

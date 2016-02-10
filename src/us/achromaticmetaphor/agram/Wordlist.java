@@ -8,13 +8,16 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class Wordlist {
+public class Wordlist implements Serializable {
 
   public static byte currentVersion = 3;
   private static byte [] oldVersions = {2};
+
+  private byte [] wordlist_handle = null;
 
   static {
     Native.load();
@@ -24,7 +27,15 @@ public class Wordlist {
     public void onComplete(boolean success);
   }
 
+  public Wordlist() {
+    loadNullWordlist();
+  }
+
   private static native byte [] platform();
+  private native boolean init(String s, WordlistReader wl);
+  private native boolean init(String s);
+  public native int get_nwords();
+  public native void loadNullWordlist();
 
   public static String transformLabel(String label, byte version) {
     try {
@@ -43,7 +54,7 @@ public class Wordlist {
     return transformLabel(label, currentVersion);
   }
 
-  public static void load(File filesDir, InputStream in, String label) {
+  public void load(File filesDir, InputStream in, String label) {
     load(filesDir, in, label, null);
   }
 
@@ -59,15 +70,15 @@ public class Wordlist {
     return false;
   }
 
-  public static void load(final File filesDir, final InputStream in, final String label, final OnCompleteListener listen) {
+  public void load(final File filesDir, final InputStream in, final String label, final OnCompleteListener listen) {
     (new AsyncTask<Void, Void, Boolean>() {
       protected Boolean doInBackground(Void... v) {
         synchronized (Wordlist.class) {
           File wlfile = new File(filesDir, transformLabel(label));
           if (wlfile.exists() || upgrade(filesDir, label))
-            return Native.init(wlfile.getAbsolutePath());
+            return init(wlfile.getAbsolutePath());
           else
-            return Native.init(wlfile.getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
+            return init(wlfile.getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
         }
       }
       protected void onPostExecute(Boolean b) {

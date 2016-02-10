@@ -2,10 +2,10 @@
 #include <string.h>
 
 #include "agram_types.h"
-#include "agram_wc.h"
 #include "astr.h"
 #include "lcwc.h"
 #include "lettercounts.h"
+#include "wordlist.h"
 
 unsigned long int wc_hash_chars(agram_cpt const * const chars, unsigned int const nchars)
 {
@@ -16,16 +16,16 @@ unsigned long int wc_hash_chars(agram_cpt const * const chars, unsigned int cons
   return h;
 }
 
-void wc_sub_s(struct wc * const out, const struct wc * const a, const struct lc * const b)
+void wc_sub_s(const struct wordlist * const wl, struct wc * const out, const struct wc * const a, const struct lc * const b)
 {
   unsigned int a_i;
   unsigned int b_i = 0;
   unsigned int o_i = 0;
   out->len = a->len - b->len;
   for (a_i = 0; a_i < a->nchars; a_i++)
-    if (b_i < b->nchars && a->chars[a_i] == charsbase[b->chars+b_i])
+    if (b_i < b->nchars && a->chars[a_i] == wl->charsbase[b->chars+b_i])
       {
-        const unsigned int diff = a->counts[a_i] - countsbase[b->chars+b_i];
+        const unsigned int diff = a->counts[a_i] - wl->countsbase[b->chars+b_i];
         if (diff)
           {
             out->chars[o_i] = a->chars[a_i];
@@ -44,14 +44,14 @@ void wc_sub_s(struct wc * const out, const struct wc * const a, const struct lc 
   out->hash = wc_hash_chars(out->chars, out->nchars);
 }
 
-int wc_sub(struct wc * const out, const struct wc * const a, const struct lc * const b)
+int wc_sub(const struct wordlist * const wl, struct wc * const out, const struct wc * const a, const struct lc * const b)
 {
   out->str = NULL;
   out->chars = malloc(sizeof(*out->chars) * (a->nchars + 1));
   out->counts = out->chars ? malloc(sizeof(*out->counts) * (a->nchars + 1)) : NULL;
   if (! out->counts)
     return wc_free(out), 1;
-  return wc_sub_s(out, a, b), 0;
+  return wc_sub_s(wl, out, a, b), 0;
 }
 
 void wc_free(struct wc * const del)

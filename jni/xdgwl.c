@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "wc.h"
+#include "wordlist.h"
 
 static FILE * open_path(const char * const base, const char * const path, const char * const file, const char * const mode)
 {
@@ -80,7 +81,7 @@ static void get(agram_dchar * out, void * vcba)
   strcpy(out, ((struct cba *) vcba)->next);
 }
 
-int init_wl(void)
+int init_wl(struct wordlist * const wl)
 {
   static const struct cwlcbs cbs = {has_next, len, get};
   struct cba cba;
@@ -93,5 +94,5 @@ int init_wl(void)
     return 1;
   }
 
-  return build_wl(&cbs, &cba);
+  return build_wl(wl, &cbs, &cba);
 }

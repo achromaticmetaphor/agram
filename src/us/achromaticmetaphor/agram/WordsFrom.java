@@ -7,6 +7,11 @@ public class WordsFrom implements Generator {
   private String s = "";
   private boolean lng = false;
   private boolean finished = true;
+  private final Wordlist wordlist;
+
+  public WordsFrom(Wordlist wl) {
+    wordlist = wl;
+  }
 
   public ArrayList<String> generate(String s) {
     return generate(s, false);

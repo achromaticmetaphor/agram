@@ -6,11 +6,11 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "agram_wc.h"
 #include "anagram.h"
 #include "anagrams.h"
 #include "vector.h"
 #include "wc.h"
+#include "wordlist.h"
 #include "words_from.h"
 #include "xdgwl.h"
 
@@ -29,21 +29,21 @@ static int usage(const char * pn)
   return 1;
 }
 
-static int single(int argc, char * argv[])
+static int single(const struct wordlist * const wl, int argc, char * argv[])
 {
   if (argc == 3)
-    return anagram(argv[2], strlen(argv[2]), prn, stdout);
+    return anagram(wl, argv[2], strlen(argv[2]), prn, stdout);
   return usage(argv[0]);
 }
 
-static int multi(int argc, char * argv[])
+static int multi(const struct wordlist * const wl, int argc, char * argv[])
 {
   if (argc == 3)
-    return anagrams(argv[2], strlen(argv[2]), prn, stdout);
+    return anagrams(wl, argv[2], strlen(argv[2]), prn, stdout);
   return usage(argv[0]);
 }
 
-static int random(int argc, char * argv[])
+static int random(const struct wordlist * const wl, int argc, char * argv[])
 {
   const long int count = argc >= 3 ? atol(argv[2]) : 1;
   struct timespec tv;
@@ -51,23 +51,24 @@ static int random(int argc, char * argv[])
   srand(tv.tv_sec ^ tv.tv_nsec);
   for (long int i = 0; i < count; i++)
     {
-      const int n = rand() % NWORDS;
-      if (prn(words_counts[n].str + strbase, words_counts[n].len, stdout))
+      const int n = rand() % wl->nwords;
+      if (prn(wl->words_counts[n].str + wl->strbase, wl->words_counts[n].len, stdout))
         return 1;
     }
   return 0;
 }
 
-static int contained(int argc, char * argv[])
+static int contained(const struct wordlist * const wl, int argc, char * argv[])
 {
   if (argc >= 3)
-    return words_from(argv[2], strlen(argv[2]), argc >= 4, prn, stdout);
+    return words_from(wl, argv[2], strlen(argv[2]), argc >= 4, prn, stdout);
   return usage(argv[0]);
 }
 
 int main(int argc, char * argv[])
 {
-  if (init_wl())
+  struct wordlist wl;
+  if (init_wl(&wl))
     return 1;
   if (argc < 2)
     return usage(argv[0]);
@@ -75,13 +76,13 @@ int main(int argc, char * argv[])
   switch(argv[1][0])
     {
       case 's':
-        return single(argc, argv);
+        return single(&wl, argc, argv);
       case 'm':
-        return multi(argc, argv);
+        return multi(&wl, argc, argv);
       case 'r':
-        return random(argc, argv);
+        return random(&wl, argc, argv);
       case 'c':
-        return contained(argc, argv);
+        return contained(&wl, argc, argv);
       default:
         return usage(argv[0]);
     }
