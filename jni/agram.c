@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,6 +68,8 @@ static int contained(const struct wordlist * const wl, int argc, char * argv[])
 
 int main(int argc, char * argv[])
 {
+  setlocale(LC_ALL, "");
+
   struct wordlist wl;
   if (init_wl(&wl))
     return 1;
