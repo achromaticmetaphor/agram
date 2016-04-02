@@ -25,7 +25,7 @@ static int compile_wl_s(struct cwlcbs const * const cbs, void * const cba, struc
       struct lc index;
       NWORDS++;
       index.len = cbs->len(cba);
-      agram_dchar str[index.len];
+      agram_dchar str[index.len + 1];
       unsigned int counts[index.len];
       agram_cpt chars[index.len];
       cbs->get(str, cba);
