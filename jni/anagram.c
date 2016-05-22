@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include "agram_types.h"
 #include "is_anagram.h"
 #include "lcwc.h"
