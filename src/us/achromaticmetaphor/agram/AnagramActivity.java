@@ -78,7 +78,7 @@ public class AnagramActivity extends Activity {
         pdia = null;
         listView.setOnScrollListener(new ScrollFiller(gen, shareList, adapter));
       }
-    }).execute(null);
+    }).execute((Void) null);
   }
 
   private void share() {
@@ -206,7 +206,7 @@ public class AnagramActivity extends Activity {
               adapter.notifyDataSetChanged();
               filling = false;
             }
-          }).execute(null);
+          }).execute((Void) null);
         }
     }
   }
