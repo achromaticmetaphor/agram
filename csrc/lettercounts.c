@@ -5,7 +5,10 @@
 #include <string.h>
 
 #include "agram_types.h"
+
+#if AGRAM_ANDROID
 #include "astr.h"
+#endif
 
 static void insert(const agram_cpt c, agram_cpt l[], size_t * const n)
 {

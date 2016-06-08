@@ -24,8 +24,8 @@ Building POSIX Binaries
 -----------------------
 A command-line version of agram for POSIX-compliant systems can be built:
 
-    make -C jni
+    make -C cli
 
-This will produce jni/agram. This version also requires a word list at run-time.
+This will produce cli/agram. This version also requires a word list at run-time.
 A suitable word list is included as assets/words, but must be installed.
 You may also already have a usable word list on your system.

@@ -4,7 +4,6 @@
 #include <string.h>
 
 #include "agram_types.h"
-#include "astr.h"
 #include "lcwc.h"
 #include "lettercounts.h"
 #include "wordlist.h"
