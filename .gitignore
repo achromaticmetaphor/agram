@@ -1,7 +1,13 @@
+/CMakeCache.txt
+/CMakeFiles
+/Makefile
+/.externalNativeBuild
 /.gradle
+/agram
 /bin
 /build
 /build.xml
+/cmake_install.cmake
 /gen
 /libs
 /local.properties

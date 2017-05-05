@@ -14,18 +14,17 @@ Building Android Binaries
 -------------------------
 To build agram from source using an Android SDK and NDK, execute:
 
-    android update project -p . -n agram
-    ndk-build
-    ant debug
+    ./gradlew build
 
-This will produce bin/agram-debug.apk.
+This will produce build/outputs/apk/agram-debug.apk.
 
 Building POSIX Binaries
 -----------------------
 A command-line version of agram for POSIX-compliant systems can be built:
 
-    make -C cli
+    cmake cli
+    make
 
-This will produce cli/agram. This version also requires a word list at run-time.
+This will produce agram. This version also requires a word list at run-time.
 A suitable word list is included as assets/words, but must be installed.
 You may also already have a usable word list on your system.
