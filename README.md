@@ -26,5 +26,5 @@ A command-line version of agram for POSIX-compliant systems can be built:
     make
 
 This will produce agram. This version also requires a word list at run-time.
-A suitable word list is included as assets/words, but must be installed.
+A suitable word list is included as src/main/assets/words, but must be installed.
 You may also already have a usable word list on your system.
