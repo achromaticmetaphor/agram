@@ -12,7 +12,7 @@ int is_within_lw(const struct wordlist * const wl, const struct lc * const a, co
   unsigned int i = 0, j = 0;
   while (i < a->nchars)
     {
-      if (j >= b->nchars)
+      if (j >= b->chars.size())
         return 0;
 
       if (a_chars[i] < b->chars[j])

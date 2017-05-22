@@ -2,9 +2,15 @@
 #define LCWC_H
 
 #include <cstddef>
+#include <vector>
 
 #include "agram_types.h"
 #include "wordlist.h"
+
+unsigned long int wc_hash_chars(std::vector<agram_cpt> &);
+unsigned long int wc_hash_chars(agram_cpt const *, unsigned int);
+
+struct wc;
 
 struct lc
 {
@@ -18,17 +24,16 @@ struct lc
 struct wc
 {
   unsigned int len;
-  unsigned int nchars;
-  agram_dchar * str;
-  agram_cpt * chars;
-  unsigned int * counts;
+  std::vector<agram_dchar> str;
+  std::vector<agram_cpt> chars;
+  std::vector<unsigned int> counts;
   unsigned long int hash;
-};
 
-void wc_sub_s(const struct wordlist *, struct wc *, const struct wc *, const struct lc *);
-int wc_sub(const struct wordlist *, struct wc *, const struct wc *, const struct lc *);
-int wc_init(struct wc *, const agram_dchar *, size_t);
-void wc_free(struct wc *);
-unsigned long int wc_hash_chars(agram_cpt const *, unsigned int);
+  void sub_s(wordlist const *, wc const *, lc const *);
+  wc(agram_dchar const *, size_t);
+
+  wc() : len(0), hash(0) {}
+  void hash_chars() { hash = wc_hash_chars(chars); }
+};
 
 #endif

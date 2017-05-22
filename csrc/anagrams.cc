@@ -10,25 +10,25 @@
 #include "lcwc.h"
 #include "wordlist.h"
 
-#define FILTER_FUN(FUN, POINTER, DEREF) \
-  static size_t FUN (const struct wordlist * const wl, const struct lc * * const out, const struct lc * const POINTER wcs, const struct wc * const target, const size_t wcslen) \
-  { \
-    const struct lc * * outp = out; \
-    size_t i; \
-    for (i = 0; i < wcslen; i++) \
-      if(is_within_lw(wl, DEREF (wcs + i), target)) \
-        *outp++ = DEREF (wcs + i); \
-    *outp = NULL; \
-    return outp - out; \
+#define FILTER_FUN(FUN, POINTER, DEREF)                                                                                                                                       \
+  static size_t FUN(const struct wordlist * const wl, const struct lc ** const out, const struct lc * const POINTER wcs, const struct wc * const target, const size_t wcslen) \
+  {                                                                                                                                                                           \
+    const struct lc ** outp = out;                                                                                                                                            \
+    size_t i;                                                                                                                                                                 \
+    for (i = 0; i < wcslen; i++)                                                                                                                                              \
+      if (is_within_lw(wl, DEREF(wcs + i), target))                                                                                                                           \
+        *outp++ = DEREF(wcs + i);                                                                                                                                             \
+    *outp = NULL;                                                                                                                                                             \
+    return outp - out;                                                                                                                                                        \
   }
 
-FILTER_FUN(filter_lc, * const, *)
+FILTER_FUN(filter_lc, *const, *)
 FILTER_FUN(filter_lc_alift, , )
 #undef FILTER_FUN
 
 size_t anagrams_single(struct agsto * const ostate)
 {
-top: ;
+top:;
   struct agst * const state = ostate->states + ostate->depth;
   if (*state->wcsp)
     {
@@ -38,10 +38,7 @@ top: ;
       else
         {
           struct agst * const next_level = ostate->states + ostate->depth + 1;
-          size_t const scratch_offset = (ostate->depth + 1) * (ostate->states[0].target.nchars + 1);
-          next_level->target.chars = ostate->chars_scratch + scratch_offset;
-          next_level->target.counts = ostate->counts_scratch + scratch_offset;
-          wc_sub_s(ostate->wl, &next_level->target, &state->target, *state->wcsp);
+          next_level->target.sub_s(ostate->wl, &state->target, *state->wcsp);
           next_level->offset = state->offset + (**state->wcsp).len + 1;
 #if AGRAM_ANDROID
           ostate->prefix[next_level->offset] = 32;
@@ -70,37 +67,33 @@ top: ;
 
 static void agsto_free(struct agsto * const ostate)
 {
-#define FREE_AND_CLEAR(lval) do { free(lval); lval = NULL; } while (0)
+#define FREE_AND_CLEAR(lval) \
+  do                         \
+    {                        \
+      if (lval)              \
+        delete[] lval;       \
+      lval = NULL;           \
+    }                        \
+  while (0)
   FREE_AND_CLEAR(ostate->prefix);
   FREE_AND_CLEAR(ostate->states);
-  FREE_AND_CLEAR(ostate->chars_scratch);
-  FREE_AND_CLEAR(ostate->counts_scratch);
 #undef FREE_AND_CLEAR
 }
 
 static int agsto_alloc(struct agsto * const ostate, size_t const len, size_t const nchars, size_t const nwords)
 {
   size_t const prefsize = len * 2 + 1;
-  size_t const scratch_len = nchars + 1;
-  ostate->states = (typeof(ostate->states)) malloc(sizeof(*ostate->states) * prefsize);
-  ostate->prefix = ostate->states ? (typeof(ostate->prefix)) malloc(sizeof(*ostate->prefix) * prefsize) : NULL;
-  ostate->chars_scratch = ostate->prefix ? (typeof(ostate->chars_scratch)) malloc(sizeof(*ostate->chars_scratch) * scratch_len * prefsize) : NULL;
-  ostate->counts_scratch = ostate->chars_scratch ? (typeof(ostate->counts_scratch)) malloc(sizeof(*ostate->counts_scratch) * scratch_len * prefsize) : NULL;
-  if (ostate->counts_scratch
-      && (ostate->states[0].wcs = (typeof(ostate->states[0].wcs)) malloc(sizeof(*ostate->states[0].wcs) * (nwords + 1) * prefsize)))
-    return 0;
-  else
-    return agsto_free(ostate), 1;
+  ostate->states = new agst[prefsize];
+  ostate->prefix = new agram_dchar[prefsize];
+  ostate->states[0].wcs = new lc const *[(nwords + 1) * prefsize];
+  return 0;
 }
 
 int anagrams_init(struct agsto * const ostate, const struct wordlist * const wl, agram_dchar const * const str, size_t const len)
 {
-  struct wc target;
-  if (wc_init(&target, str, len))
+  struct wc target(str, len);
+  if (agsto_alloc(ostate, target.len, target.chars.size(), wl->nwords))
     return 1;
-
-  if (agsto_alloc(ostate, target.len, target.nchars, wl->nwords))
-    return wc_free(&target), 1;
 
   ostate->wl = wl;
   ostate->depth = 0;
@@ -113,19 +106,16 @@ int anagrams_init(struct agsto * const ostate, const struct wordlist * const wl,
 
 void anagrams_destroy(struct agsto * const ostate)
 {
-  if (! ostate)
+  if (!ostate)
     return;
   ostate->depth = 0;
   struct agst * const state = ostate->states;
   if (state)
-    {
-      wc_free(&state->target);
-      free(state->wcs);
-    }
+    delete[] state->wcs;
   agsto_free(ostate);
 }
 
-int anagrams(const struct wordlist * const wl, agram_dchar const * const str, size_t const len, int (* const cb)(agram_dchar const *, size_t, void *), void * const cba)
+int anagrams(const struct wordlist * const wl, agram_dchar const * const str, size_t const len, int (*const cb)(agram_dchar const *, size_t, void *), void * const cba)
 {
   struct agsto ostate;
   if (anagrams_init(&ostate, wl, str, len))

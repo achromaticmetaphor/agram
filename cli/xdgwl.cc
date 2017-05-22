@@ -24,12 +24,14 @@ static FILE * find_wordlist(void)
   const char * const wordlist_filenames[] = {"agram/words", "dict/words", NULL};
   for (int i = 0; wordlist_filenames[i]; i++)
     {
-#define RETURN_IF_READABLE(b, p) \
-  do { \
-    FILE * const wordlist = open_path(b, p, wordlist_filenames[i], "r"); \
-    if (wordlist) \
-      return wordlist; \
-  } while (0)
+#define RETURN_IF_READABLE(b, p)                                           \
+  do                                                                       \
+    {                                                                      \
+      FILE * const wordlist = open_path(b, p, wordlist_filenames[i], "r"); \
+      if (wordlist)                                                        \
+        return wordlist;                                                   \
+    }                                                                      \
+  while (0)
 
       char * xdg_data_home = getenv("XDG_DATA_HOME");
       if (xdg_data_home && xdg_data_home[0])
@@ -37,13 +39,13 @@ static FILE * find_wordlist(void)
       else
         {
           char const * home = getenv("HOME");
-          if (! home)
+          if (!home)
             home = "";
           RETURN_IF_READABLE(home, ".local/share");
         }
 
       char const * xdg_data_dirs = getenv("XDG_DATA_DIRS");
-      if (! xdg_data_dirs || ! xdg_data_dirs[0])
+      if (!xdg_data_dirs || !xdg_data_dirs[0])
         xdg_data_dirs = "/usr/local/share/:/usr/share/";
 
       char xdg_data_dirs_m[strlen(xdg_data_dirs) + 1];
@@ -58,7 +60,7 @@ static FILE * find_wordlist(void)
 struct src : cwlsrc
 {
   FILE * wordlist;
-  char next [1024];
+  char next[1024];
 
   int has_next();
   size_t len();
@@ -70,7 +72,7 @@ int src::has_next()
   if (fgets(next, 1024, wordlist) == NULL)
     return 0;
   char * const newline = strchr(next, '\n');
-  if (! newline || newline == next)
+  if (!newline || newline == next)
     return 0;
   *newline = 0;
   return 1;
@@ -90,12 +92,13 @@ int init_wl(struct wordlist * const wl)
 {
   src sr;
   sr.wordlist = find_wordlist();
-  if (! sr.wordlist) {
-    fprintf(stderr, "error: No wordlist was found.\n");
-    fprintf(stderr, "Wordlists are searched for in $XDG_DATA_DIRS/agram/words and $XDG_DATA_DIRS/dict/words.\n");
-    fprintf(stderr, "A wordlist may also be specified in AGRAM_WORDLIST.\n");
-    return 1;
-  }
+  if (!sr.wordlist)
+    {
+      fprintf(stderr, "error: No wordlist was found.\n");
+      fprintf(stderr, "Wordlists are searched for in $XDG_DATA_DIRS/agram/words and $XDG_DATA_DIRS/dict/words.\n");
+      fprintf(stderr, "A wordlist may also be specified in AGRAM_WORDLIST.\n");
+      return 1;
+    }
 
   return sr.build_wl(wl);
 }

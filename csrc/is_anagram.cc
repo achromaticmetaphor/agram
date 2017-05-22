@@ -7,8 +7,16 @@
 
 int is_anagram(wordlist const * const wl, wc const * const a, lc const * const b)
 {
-  return a->len == b->len
-      && a->nchars == b->nchars
-      && ! memcmp(a->chars, wl->charsbase + b->chars, sizeof(a->chars[0]) * a->nchars)
-      && ! memcmp(a->counts, wl->countsbase + b->chars, sizeof(a->counts[0]) * a->nchars);
+  if (a->len != b->len)
+    return 0;
+  if (a->chars.size() != b->nchars)
+    return 0;
+  for (unsigned int i = 0; i < b->nchars; ++i)
+    {
+      if (a->chars[i] != (wl->charsbase + b->chars)[i])
+        return 0;
+      if (a->counts[i] != (wl->countsbase + b->chars)[i])
+        return 0;
+    }
+  return 1;
 }

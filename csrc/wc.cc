@@ -14,8 +14,8 @@
 
 struct cwlocbs
 {
-  int (* each)(void *, struct lc const *, agram_dchar const *, agram_cpt const *, unsigned int const *);
-  int (* all)(void *);
+  int (*each)(void *, struct lc const *, agram_dchar const *, agram_cpt const *, unsigned int const *);
+  int (*all)(void *);
 };
 
 static int compile_wl_s(cwlsrc * const src, struct cwlocbs const * const ocbs, void * const ocba)
@@ -23,23 +23,26 @@ static int compile_wl_s(cwlsrc * const src, struct cwlocbs const * const ocbs, v
   agram_size NWORDS = 0;
   size_t stroff = 0;
   size_t charsoff = 0;
+  std::vector<unsigned int> counts;
+  std::vector<agram_cpt> chars;
   while (src->has_next())
     {
       struct lc index;
       NWORDS++;
       index.len = src->len();
       agram_dchar str[index.len + 1];
-      unsigned int counts[index.len];
-      agram_cpt chars[index.len];
       src->get(str);
-      index.nchars = lettercounts(counts, chars, str, index.len);
+      counts.clear();
+      chars.clear();
+      lettercounts(counts, chars, str, index.len);
+      index.nchars = chars.size();
       index.str = stroff;
       index.chars = charsoff;
-      index.hash = wc_hash_chars(chars, index.nchars);
+      index.hash = wc_hash_chars(chars);
       stroff += index.len;
       charsoff += index.nchars;
 
-      if (ocbs->each(ocba, &index, str, chars, counts))
+      if (ocbs->each(ocba, &index, str, chars.data(), counts.data()))
         return 1;
     }
 
@@ -60,10 +63,7 @@ static int file_each(void * const vostate, struct lc const * const index, agram_
 {
   file_ostate * const ostate = static_cast<file_ostate *>(vostate);
   ostate->NWORDS++;
-  return fwrite(index, sizeof(*index), 1, ostate->i) != 1
-      || fwrite(str, sizeof(*str), index->len, ostate->s) != index->len
-      || fwrite(chars, sizeof(*chars), index->nchars, ostate->c) != index->nchars
-      || fwrite(counts, sizeof(*counts), index->nchars, ostate->n) != index->nchars;
+  return fwrite(index, sizeof(*index), 1, ostate->i) != 1 || fwrite(str, sizeof(*str), index->len, ostate->s) != index->len || fwrite(chars, sizeof(*chars), index->nchars, ostate->c) != index->nchars || fwrite(counts, sizeof(*counts), index->nchars, ostate->n) != index->nchars;
 }
 
 static int file_all(void * const vostate)
@@ -82,19 +82,19 @@ int cwlsrc::compile_wl(const char * outfn)
 {
   int failed = 1;
   struct file_ostate ostate;
-  char fne[strlen(outfn)+3];
+  char fne[strlen(outfn) + 3];
 
-#define FOF(suffix, fail) \
-  sprintf(fne, "%s." # suffix, outfn); \
-  ostate.suffix = fopen(fne, "wb"); \
-  if (! ostate.suffix) \
+#define FOF(suffix, fail)             \
+  sprintf(fne, "%s." #suffix, outfn); \
+  ostate.suffix = fopen(fne, "wb");   \
+  if (!ostate.suffix)                 \
     fail;
 
   FOF(i, return 1)
   FOF(s, goto fail_i)
   FOF(c, goto fail_s)
   FOF(n, goto fail_c)
-  if (! (ostate.b = fopen(outfn, "wb")))
+  if (!(ostate.b = fopen(outfn, "wb")))
     goto fail_n;
   ostate.NWORDS = 0;
 
@@ -143,7 +143,7 @@ static int mem_all(void * const vostate)
 
 int cwlsrc::build_wl(struct wordlist * const wl)
 {
-  mem_ostate & ostate = * new mem_ostate; // TODO FIXME intentional memory leak of vector backing arrays pending cleanup of C code
+  mem_ostate & ostate = *new mem_ostate; // TODO FIXME intentional memory leak of vector backing arrays pending cleanup of C code
 
   static const struct cwlocbs ocbs = {mem_each, mem_all};
   if (compile_wl_s(this, &ocbs, &ostate))

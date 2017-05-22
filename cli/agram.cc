@@ -15,10 +15,10 @@
 
 static int prn(const agram_dchar * str, size_t len, void * vfd)
 {
-  agram_dchar ostr[len+2];
+  agram_dchar ostr[len + 2];
   memcpy(ostr, str, len * sizeof(*ostr));
   ostr[len] = '\n';
-  ostr[len+1] = 0;
+  ostr[len + 1] = 0;
   return fputs(ostr, static_cast<FILE *>(vfd)) == EOF;
 }
 
@@ -74,7 +74,7 @@ int main(int argc, char * argv[])
   if (argc < 2)
     return usage(argv[0]);
 
-  switch(argv[1][0])
+  switch (argv[1][0])
     {
       case 's':
         return single(&wl, argc, argv);

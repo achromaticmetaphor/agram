@@ -7,20 +7,20 @@
 #include "lcwc.h"
 #include "wordlist.h"
 
-struct agst {
+struct agst
+{
   struct wc target;
   size_t offset;
-  const struct lc * * wcs;
+  const struct lc ** wcs;
   size_t wcslen;
-  const struct lc * * wcsp;
+  const struct lc ** wcsp;
 };
 
-struct agsto {
+struct agsto
+{
   struct agst * states;
   size_t depth;
   agram_dchar * prefix;
-  agram_cpt * chars_scratch;
-  unsigned int * counts_scratch;
   const struct wordlist * wl;
 };
 

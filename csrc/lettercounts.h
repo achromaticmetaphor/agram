@@ -5,6 +5,6 @@
 
 #include "agram_types.h"
 
-size_t lettercounts(unsigned int [], agram_cpt [], const agram_dchar *, size_t);
+void lettercounts(std::vector<unsigned int> &, std::vector<agram_cpt> &, const agram_dchar *, size_t);
 
 #endif
