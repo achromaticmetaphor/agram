@@ -2,6 +2,7 @@
 #define ANAGRAMS_H
 
 #include <cstddef>
+#include <vector>
 
 #include "agram_types.h"
 #include "lcwc.h"
@@ -9,24 +10,27 @@
 
 struct agst
 {
-  struct wc target;
+  wc target;
   size_t offset;
-  const struct lc ** wcs;
-  size_t wcslen;
-  const struct lc ** wcsp;
+  std::vector<lc *> wcs;
+  size_t wcsi;
+
+  lc * const & current() const { return wcs[wcsi]; }
+  lc *& advance() { return wcs[wcsi++]; }
+  bool exhausted() const { return wcsi >= wcs.size(); }
 };
 
 struct agsto
 {
-  struct agst * states;
+  std::vector<agst> states;
   size_t depth;
-  agram_dchar * prefix;
-  const struct wordlist * wl;
+  std::vector<agram_dchar> prefix;
+  wordlist const & wl;
+
+  agsto(wordlist const &, agram_dchar const *, size_t);
+  size_t single();
 };
 
-int anagrams_init(struct agsto *, const struct wordlist *, agram_dchar const *, size_t);
-size_t anagrams_single(struct agsto *);
-void anagrams_destroy(struct agsto *);
-int anagrams(const struct wordlist *, agram_dchar const *, size_t, int (*)(agram_dchar const *, size_t, void *), void *);
+int anagrams(wordlist const &, agram_dchar const *, size_t, int (*)(agram_dchar const *, size_t, void *), void *);
 
 #endif

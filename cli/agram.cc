@@ -35,7 +35,7 @@ static int single(const struct wordlist * const wl, int argc, char * argv[])
   return usage(argv[0]);
 }
 
-static int multi(const struct wordlist * const wl, int argc, char * argv[])
+static int multi(wordlist const & wl, int argc, char * argv[])
 {
   if (argc == 3)
     return anagrams(wl, argv[2], strlen(argv[2]), prn, stdout);
@@ -79,7 +79,7 @@ int main(int argc, char * argv[])
       case 's':
         return single(&wl, argc, argv);
       case 'm':
-        return multi(&wl, argc, argv);
+        return multi(wl, argc, argv);
       case 'r':
         return random(&wl, argc, argv);
       case 'c':

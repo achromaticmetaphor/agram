@@ -158,7 +158,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_g
   jchar const * const str = alinit(&al, env) ? nullptr : env->GetStringChars(string, nullptr);
   if (str)
     {
-      anagrams(wl, str, env->GetStringLength(string), aladd, &al);
+      anagrams(*wl, str, env->GetStringLength(string), aladd, &al);
       env->ReleaseStringChars(string, str);
     }
   return al.alinstance;
@@ -230,10 +230,9 @@ extern "C" JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Wordlist_
 
 extern "C" JNIEXPORT void JNICALL Java_us_achromaticmetaphor_agram_Anagrams_uninit(JNIEnv * const env, jobject const obj)
 {
-  struct agsto * state = (struct agsto *) get_marshalled_pointer_or_null(env, obj, "handle");
+  auto state = (agsto *) get_marshalled_pointer_or_null(env, obj, "handle");
   clear_marshalled_pointer(env, obj, "handle");
-  anagrams_destroy(state);
-  free(state);
+  delete state;
 }
 
 extern "C" JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Anagrams_init__Ljava_lang_String_2(JNIEnv * const env, jobject const obj, jstring const jstr)
@@ -243,16 +242,16 @@ extern "C" JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Anagrams_
   if (!wl)
     return JNI_FALSE;
 
-  struct agsto * const state = (struct agsto *) malloc(sizeof(*state));
-  jchar const * const str = state ? env->GetStringChars(jstr, nullptr) : nullptr;
-  int const init_failed = str ? anagrams_init(state, wl, str, env->GetStringLength(jstr)) : 1;
+  jchar const * const str = env->GetStringChars(jstr, nullptr);
+  auto state = str ? new agsto(*wl, str, env->GetStringLength(jstr)) : nullptr;
   if (str)
     env->ReleaseStringChars(jstr, str);
+  else
+    return JNI_FALSE;
 
-  if (init_failed || put_marshalled_pointer(env, obj, "handle", state))
+  if (put_marshalled_pointer(env, obj, "handle", state))
     {
-      anagrams_destroy(state);
-      free(state);
+      delete state;
       return JNI_FALSE;
     }
   else
@@ -265,17 +264,17 @@ extern "C" JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_g
   if (alinit(&al, env))
     return nullptr;
 
-  struct agsto * state = (struct agsto *) get_marshalled_pointer(env, obj, "handle");
+  auto state = (agsto *) get_marshalled_pointer(env, obj, "handle");
   if (!state)
     return nullptr;
 
   jint i;
   for (i = 0; i < n; i++)
     {
-      size_t const slen = anagrams_single(state);
+      size_t const slen = state->single();
       if (!slen)
         break;
-      if (aladd(state->prefix + 1, slen, &al))
+      if (aladd(state->prefix.data() + 1, slen, &al))
         break;
     }
   return al.alinstance;
