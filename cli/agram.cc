@@ -1,16 +1,14 @@
 #define _POSIX_C_SOURCE 200809L
 
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <clocale>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <unistd.h>
 
 #include "anagram.h"
 #include "anagrams.h"
-#include "vector.h"
-#include "wc.h"
 #include "wordlist.h"
 #include "words_from.h"
 #include "xdgwl.h"
@@ -21,7 +19,7 @@ static int prn(const agram_dchar * str, size_t len, void * vfd)
   memcpy(ostr, str, len * sizeof(*ostr));
   ostr[len] = '\n';
   ostr[len+1] = 0;
-  return fputs(ostr, vfd) == EOF;
+  return fputs(ostr, static_cast<FILE *>(vfd)) == EOF;
 }
 
 static int usage(const char * pn)

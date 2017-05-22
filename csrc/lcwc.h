@@ -1,7 +1,7 @@
 #ifndef LCWC_H
 #define LCWC_H
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "agram_types.h"
 #include "wordlist.h"

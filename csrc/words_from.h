@@ -1,7 +1,7 @@
 #ifndef WORDS_FROM_H
 #define WORDS_FROM_H
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "agram_types.h"
 #include "wordlist.h"

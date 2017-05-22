@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "agram_types.h"
 #include "lcwc.h"
@@ -48,8 +48,8 @@ void wc_sub_s(const struct wordlist * const wl, struct wc * const out, const str
 int wc_sub(const struct wordlist * const wl, struct wc * const out, const struct wc * const a, const struct lc * const b)
 {
   out->str = NULL;
-  out->chars = malloc(sizeof(*out->chars) * (a->nchars + 1));
-  out->counts = out->chars ? malloc(sizeof(*out->counts) * (a->nchars + 1)) : NULL;
+  out->chars = (typeof(out->chars)) malloc(sizeof(*out->chars) * (a->nchars + 1));
+  out->counts = out->chars ? (typeof(out->counts)) malloc(sizeof(*out->counts) * (a->nchars + 1)) : NULL;
   if (! out->counts)
     return wc_free(out), 1;
   return wc_sub_s(wl, out, a, b), 0;
@@ -64,13 +64,13 @@ void wc_free(struct wc * const del)
 
 int wc_init(struct wc * const target, const agram_dchar * const str, const size_t slen)
 {
-  target->str = malloc(slen * sizeof(*target->str));
+  target->str = (typeof(target->str)) malloc(slen * sizeof(*target->str));
   if (! target->str)
     return 1;
   memcpy(target->str, str, slen * sizeof(*str));
   target->len = slen;
-  target->chars = malloc(sizeof(*target->chars) * (target->len + 1));
-  target->counts = malloc(sizeof(*target->counts) * (target->len + 1));
+  target->chars = (typeof(target->chars)) malloc(sizeof(*target->chars) * (target->len + 1));
+  target->counts = (typeof(target->counts)) malloc(sizeof(*target->counts) * (target->len + 1));
   if ((! target->chars) || (! target->counts))
     return wc_free(target), 1;
   target->nchars = lettercounts(target->counts, target->chars, str, slen);

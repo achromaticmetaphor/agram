@@ -19,12 +19,10 @@ int is_within_lw(const struct wordlist * const wl, const struct lc * const a, co
         return 0;
 
       else if (a_chars[i] == b->chars[j])
-        {
-          if (a_counts[i] > b->counts[j])
-            return 0;
-          else
-            i++;
-        }
+        if (a_counts[i] > b->counts[j])
+          return 0;
+        else
+          i++;
 
       else if (a_chars[i] > b->chars[j])
         j++;

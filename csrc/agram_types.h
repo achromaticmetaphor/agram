@@ -8,7 +8,7 @@
   typedef jchar agram_dchar;
   typedef jint agram_size;
 #else
-  #include <stddef.h>
+  #include <cstddef>
   typedef wchar_t agram_cpt;
   typedef char agram_dchar;
   typedef size_t agram_size;

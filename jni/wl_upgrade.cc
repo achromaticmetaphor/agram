@@ -1,9 +1,9 @@
 #define _POSIX_C_SOURCE 200809L
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 
 #include "agram_types.h"
@@ -65,7 +65,7 @@ static int write_base(const struct wordlist * const wl, const char * const fn)
   if (! fp)
     return 1;
 
-  const long tells[4] = {sizeof(*wl->words_counts) * wl->nwords, wl->strbase_len, wl->charsbase_len, wl->countsbase_len};
+  const unsigned long tells[4] = {sizeof(*wl->words_counts) * wl->nwords, wl->strbase_len, wl->charsbase_len, wl->countsbase_len};
   int const write_failed = fwrite(&wl->nwords, sizeof(wl->nwords), 1, fp) != 1 || fwrite(tells, sizeof(*tells), 4, fp) != 4;
   int const close_failed = fclose(fp);
   return write_failed || close_failed;

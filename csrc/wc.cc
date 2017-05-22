@@ -1,14 +1,15 @@
 #define _POSIX_C_SOURCE 200809L
 
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
+#include <array>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
+#include <vector>
 
 #include "agram_types.h"
 #include "agram_wc.h"
 #include "lcwc.h"
 #include "lettercounts.h"
-#include "vector.h"
 #include "wc.h"
 
 struct cwlocbs
@@ -17,20 +18,20 @@ struct cwlocbs
   int (* all)(void *);
 };
 
-static int compile_wl_s(struct cwlcbs const * const cbs, void * const cba, struct cwlocbs const * const ocbs, void * const ocba)
+static int compile_wl_s(cwlsrc * const src, struct cwlocbs const * const ocbs, void * const ocba)
 {
   agram_size NWORDS = 0;
   size_t stroff = 0;
   size_t charsoff = 0;
-  while (cbs->has_next(cba))
+  while (src->has_next())
     {
       struct lc index;
       NWORDS++;
-      index.len = cbs->len(cba);
+      index.len = src->len();
       agram_dchar str[index.len + 1];
       unsigned int counts[index.len];
       agram_cpt chars[index.len];
-      cbs->get(str, cba);
+      src->get(str);
       index.nchars = lettercounts(counts, chars, str, index.len);
       index.str = stroff;
       index.chars = charsoff;
@@ -57,7 +58,7 @@ struct file_ostate
 
 static int file_each(void * const vostate, struct lc const * const index, agram_dchar const * const str, agram_cpt const * const chars, unsigned int const * const counts)
 {
-  struct file_ostate * const ostate = vostate;
+  file_ostate * const ostate = static_cast<file_ostate *>(vostate);
   ostate->NWORDS++;
   return fwrite(index, sizeof(*index), 1, ostate->i) != 1
       || fwrite(str, sizeof(*str), index->len, ostate->s) != index->len
@@ -67,23 +68,17 @@ static int file_each(void * const vostate, struct lc const * const index, agram_
 
 static int file_all(void * const vostate)
 {
-  struct file_ostate * const ostate = vostate;
+  file_ostate * const ostate = static_cast<file_ostate *>(vostate);
 
-  long tells[4];
-  tells[0] = ftell(ostate->i);
-  tells[1] = ftell(ostate->s);
-  tells[2] = ftell(ostate->c);
-  tells[3] = ftell(ostate->n);
-
-  int i;
-  for (i = 0; i < 4; i++)
-    if (tells[i] == -1)
+  std::array<long, 4> tells = {ftell(ostate->i), ftell(ostate->s), ftell(ostate->c), ftell(ostate->n)};
+  for (long t : tells)
+    if (t == -1)
       return 1;
 
-  return (fwrite(&ostate->NWORDS, sizeof(ostate->NWORDS), 1, ostate->b) != 1 || fwrite(tells, sizeof(*tells), 4, ostate->b) != 4);
+  return (fwrite(&ostate->NWORDS, sizeof(ostate->NWORDS), 1, ostate->b) != 1 || fwrite(tells.data(), sizeof(*tells.data()), tells.size(), ostate->b) != tells.size());
 }
 
-int compile_wl(const char * outfn, struct cwlcbs const * const cbs, void * const cba)
+int cwlsrc::compile_wl(const char * outfn)
 {
   int failed = 1;
   struct file_ostate ostate;
@@ -104,7 +99,7 @@ int compile_wl(const char * outfn, struct cwlcbs const * const cbs, void * const
   ostate.NWORDS = 0;
 
   static const struct cwlocbs ocbs = {file_each, file_all};
-  failed = compile_wl_s(cbs, cba, &ocbs, &ostate);
+  failed = compile_wl_s(this, &ocbs, &ostate);
 
   failed |= fclose(ostate.b);
 fail_n:
@@ -120,21 +115,25 @@ fail_i:
 
 struct mem_ostate
 {
-  agram_size NWORDS;
-  struct vector words_counts;
-  struct vector strbase;
-  struct vector charsbase;
-  struct vector countsbase;
+  std::vector<lc> words_counts;
+  std::vector<agram_dchar> strbase;
+  std::vector<agram_cpt> charsbase;
+  std::vector<unsigned int> countsbase;
 };
 
 static int mem_each(void * const vostate, struct lc const * const index, agram_dchar const * const str, agram_cpt const * const chars, unsigned int const * const counts)
 {
-  struct mem_ostate * const ostate = vostate;
-  ostate->NWORDS++;
-  return vector_append(&ostate->words_counts, index, sizeof(*index))
-      || vector_append(&ostate->strbase, str, sizeof(*str) * index->len)
-      || vector_append(&ostate->charsbase, chars, sizeof(*chars) * index->nchars)
-      || vector_append(&ostate->countsbase, counts, sizeof(*counts) * index->nchars);
+  mem_ostate & ostate = *static_cast<mem_ostate *>(vostate);
+
+  ostate.words_counts.push_back(*index);
+  for (unsigned int i = 0; i < index->len; ++i)
+    ostate.strbase.push_back(str[i]);
+  for (unsigned int i = 0; i < index->nchars; ++i)
+    ostate.charsbase.push_back(chars[i]);
+  for (unsigned int i = 0; i < index->nchars; ++i)
+    ostate.countsbase.push_back(counts[i]);
+
+  return 0;
 }
 
 static int mem_all(void * const vostate)
@@ -142,31 +141,20 @@ static int mem_all(void * const vostate)
   return 0;
 }
 
-int build_wl(struct wordlist * const wl, struct cwlcbs const * const cbs, void * const cba)
+int cwlsrc::build_wl(struct wordlist * const wl)
 {
-  struct mem_ostate ostate;
-  ostate.NWORDS = 0;
-  vector_init(&ostate.words_counts);
-  vector_init(&ostate.strbase);
-  vector_init(&ostate.charsbase);
-  vector_init(&ostate.countsbase);
+  mem_ostate & ostate = * new mem_ostate; // TODO FIXME intentional memory leak of vector backing arrays pending cleanup of C code
 
   static const struct cwlocbs ocbs = {mem_each, mem_all};
-  if (compile_wl_s(cbs, cba, &ocbs, &ostate))
-    {
-      vector_destroy(&ostate.words_counts);
-      vector_destroy(&ostate.strbase);
-      vector_destroy(&ostate.charsbase);
-      vector_destroy(&ostate.countsbase);
-      return 1;
-    }
+  if (compile_wl_s(this, &ocbs, &ostate))
+    return 1;
   else
     {
-      wl->nwords = ostate.NWORDS;
-      wl->words_counts = (void *) ostate.words_counts.vector;
-      wl->strbase = (void *) ostate.strbase.vector;
-      wl->charsbase = (void *) ostate.charsbase.vector;
-      wl->countsbase = (void *) ostate.countsbase.vector;
+      wl->nwords = ostate.words_counts.size();
+      wl->words_counts = ostate.words_counts.data();
+      wl->strbase = ostate.strbase.data();
+      wl->charsbase = ostate.charsbase.data();
+      wl->countsbase = ostate.countsbase.data();
       return 0;
     }
 }

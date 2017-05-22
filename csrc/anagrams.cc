@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 
 #include "agram_types.h"
 #include "anagrams.h"
@@ -82,12 +82,12 @@ static int agsto_alloc(struct agsto * const ostate, size_t const len, size_t con
 {
   size_t const prefsize = len * 2 + 1;
   size_t const scratch_len = nchars + 1;
-  ostate->states = malloc(sizeof(*ostate->states) * prefsize);
-  ostate->prefix = ostate->states ? malloc(sizeof(*ostate->prefix) * prefsize) : NULL;
-  ostate->chars_scratch = ostate->prefix ? malloc(sizeof(*ostate->chars_scratch) * scratch_len * prefsize) : NULL;
-  ostate->counts_scratch = ostate->chars_scratch ? malloc(sizeof(*ostate->counts_scratch) * scratch_len * prefsize) : NULL;
+  ostate->states = (typeof(ostate->states)) malloc(sizeof(*ostate->states) * prefsize);
+  ostate->prefix = ostate->states ? (typeof(ostate->prefix)) malloc(sizeof(*ostate->prefix) * prefsize) : NULL;
+  ostate->chars_scratch = ostate->prefix ? (typeof(ostate->chars_scratch)) malloc(sizeof(*ostate->chars_scratch) * scratch_len * prefsize) : NULL;
+  ostate->counts_scratch = ostate->chars_scratch ? (typeof(ostate->counts_scratch)) malloc(sizeof(*ostate->counts_scratch) * scratch_len * prefsize) : NULL;
   if (ostate->counts_scratch
-      && (ostate->states[0].wcs = malloc(sizeof(*ostate->states[0].wcs) * (nwords + 1) * prefsize)))
+      && (ostate->states[0].wcs = (typeof(ostate->states[0].wcs)) malloc(sizeof(*ostate->states[0].wcs) * (nwords + 1) * prefsize)))
     return 0;
   else
     return agsto_free(ostate), 1;

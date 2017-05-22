@@ -1,7 +1,7 @@
 #ifndef ANAGRAMS_H
 #define ANAGRAMS_H
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "agram_types.h"
 #include "lcwc.h"

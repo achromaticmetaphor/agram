@@ -1,11 +1,11 @@
 #define _POSIX_C_SOURCE 200809L
 
-#include <string.h>
+#include <cstring>
 
 #include "lcwc.h"
 #include "wordlist.h"
 
-int is_anagram(const struct wordlist * const wl, const struct wc * const a, const struct lc * const b)
+int is_anagram(wordlist const * const wl, wc const * const a, lc const * const b)
 {
   return a->len == b->len
       && a->nchars == b->nchars

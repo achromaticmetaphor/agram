@@ -1,9 +1,9 @@
 #define _POSIX_C_SOURCE 200809L
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "wc.h"
 #include "wordlist.h"
@@ -36,13 +36,13 @@ static FILE * find_wordlist(void)
         RETURN_IF_READABLE(xdg_data_home, "");
       else
         {
-          char * home = getenv("HOME");
+          char const * home = getenv("HOME");
           if (! home)
             home = "";
           RETURN_IF_READABLE(home, ".local/share");
         }
 
-      char * xdg_data_dirs = getenv("XDG_DATA_DIRS");
+      char const * xdg_data_dirs = getenv("XDG_DATA_DIRS");
       if (! xdg_data_dirs || ! xdg_data_dirs[0])
         xdg_data_dirs = "/usr/local/share/:/usr/share/";
 
@@ -55,46 +55,47 @@ static FILE * find_wordlist(void)
   return NULL;
 }
 
-struct cba
+struct src : cwlsrc
 {
   FILE * wordlist;
   char next [1024];
+
+  int has_next();
+  size_t len();
+  void get(agram_dchar *);
 };
 
-static int has_next(void * vcba)
+int src::has_next()
 {
-  struct cba * cba = vcba;
-  if (fgets(cba->next, 1024, cba->wordlist) == NULL)
+  if (fgets(next, 1024, wordlist) == NULL)
     return 0;
-  char * const newline = strchr(cba->next, '\n');
-  if (! newline || newline == cba->next)
+  char * const newline = strchr(next, '\n');
+  if (! newline || newline == next)
     return 0;
   *newline = 0;
   return 1;
 }
 
-static size_t len(void * vcba)
+size_t src::len()
 {
-  return strlen(((struct cba *) vcba)->next);
+  return strlen(next);
 }
 
-static void get(agram_dchar * out, void * vcba)
+void src::get(agram_dchar * out)
 {
-  strcpy(out, ((struct cba *) vcba)->next);
+  strcpy(out, next);
 }
 
 int init_wl(struct wordlist * const wl)
 {
-  static const struct cwlcbs cbs = {has_next, len, get};
-  struct cba cba;
-
-  cba.wordlist = find_wordlist();
-  if (! cba.wordlist) {
+  src sr;
+  sr.wordlist = find_wordlist();
+  if (! sr.wordlist) {
     fprintf(stderr, "error: No wordlist was found.\n");
     fprintf(stderr, "Wordlists are searched for in $XDG_DATA_DIRS/agram/words and $XDG_DATA_DIRS/dict/words.\n");
     fprintf(stderr, "A wordlist may also be specified in AGRAM_WORDLIST.\n");
     return 1;
   }
 
-  return build_wl(wl, &cbs, &cba);
+  return sr.build_wl(wl);
 }

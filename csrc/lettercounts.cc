@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 
 #include "agram_types.h"
 
@@ -21,8 +21,8 @@ static void insert(const agram_cpt c, agram_cpt l[], size_t * const n)
 
 static int wccmp(const void * const va, const void * const vb)
 {
-  const agram_cpt * const a = va;
-  const agram_cpt * const b = vb;
+  const agram_cpt * const a = (typeof(a)) va;
+  const agram_cpt * const b = (typeof(b)) vb;
   return *a < *b ? -1 : *a != *b;
 }
 

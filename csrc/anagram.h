@@ -1,7 +1,7 @@
 #ifndef ANAGRAM_H
 #define ANAGRAM_H
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "agram_types.h"
 #include "wordlist.h"

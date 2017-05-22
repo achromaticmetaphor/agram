@@ -1,7 +1,7 @@
 #ifndef LETTERCOUNTS_H
 #define LETTERCOUNTS_H
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "agram_types.h"
 

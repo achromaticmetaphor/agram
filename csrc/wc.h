@@ -1,20 +1,21 @@
 #ifndef WC_H
 #define WC_H
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "agram_types.h"
 #include "lcwc.h"
 #include "wordlist.h"
 
-struct cwlcbs
+struct cwlsrc
 {
-  int (* has_next)(void *);
-  size_t (* len)(void *);
-  void (* get)(agram_dchar *, void *);
-};
+  virtual ~cwlsrc() {}
+  virtual int has_next() = 0;
+  virtual size_t len() = 0;
+  virtual void get(agram_dchar *) = 0;
 
-int compile_wl(const char *, struct cwlcbs const *, void *);
-int build_wl(struct wordlist *, struct cwlcbs const *, void *);
+  int compile_wl(const char *);
+  int build_wl(struct wordlist *);
+};
 
 #endif

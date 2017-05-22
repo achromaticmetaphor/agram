@@ -1,9 +1,9 @@
 #define _POSIX_C_SOURCE 200809L
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "agram_types.h"
 #include "lcwc.h"
@@ -59,7 +59,7 @@ static void * omap(const char * const fn, long const tell)
   struct stat st;
   void * const mapping = (fd = open(fn, O_RDONLY)) != -1 && ! fstat(fd, &st) && st.st_size == tell ? mmap(0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0) : MAP_FAILED;
   close(fd);
-  return mapping == MAP_FAILED ? NULL : mapping;
+  return mapping == MAP_FAILED ? nullptr : mapping;
 #else
   void * const mapping = malloc(tell);
   if (mapping)
@@ -72,7 +72,7 @@ static void * omap(const char * const fn, long const tell)
           fclose(fi);
         }
       if (! read)
-        return free(mapping), NULL;
+        return free(mapping), nullptr;
     }
   return mapping;
 #endif
@@ -94,7 +94,7 @@ int load_wl(struct wordlist * const wl, const char * const fn)
 
 #define OMAP(suffix, wl, mapping, depth, tell) \
   sprintf(fne, "%s." # suffix, fn); \
-  wl->mapping = omap(fne, tell); \
+  wl->mapping = (typeof(wl->mapping)) omap(fne, tell); \
   if (! wl->mapping) \
     return unload_wl_s(wl, depth), 1; \
   wl->mapping ## _len = tell;

@@ -1,7 +1,7 @@
 #ifndef ASTR_H
 #define ASTR_H
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "agram_types.h"
 
