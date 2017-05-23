@@ -1,39 +1,37 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <cstddef>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include <unistd.h>
 
 #include "wc.h"
 #include "wordlist.h"
 
-static FILE * open_path(const char * const base, const char * const path, const char * const file, const char * const mode)
+static std::string find_wordlist(void)
 {
-  char filepath[strlen(base) + strlen(path) + strlen(file) + 3];
-  sprintf(filepath, "%s/%s/%s", base, path, file);
-  return fopen(filepath, mode);
-}
-
-static FILE * find_wordlist(void)
-{
-  char * const override_wl = getenv("AGRAM_WORDLIST");
+  char const * const override_wl = getenv("AGRAM_WORDLIST");
   if (override_wl)
-    return fopen(override_wl, "r");
+    return override_wl;
 
-  const char * const wordlist_filenames[] = {"agram/words", "dict/words", NULL};
-  for (int i = 0; wordlist_filenames[i]; i++)
+  std::vector<std::string> wordlist_filenames = {"agram/words", "dict/words"};
+  for (std::string const & name : wordlist_filenames)
     {
-#define RETURN_IF_READABLE(b, p)                                           \
-  do                                                                       \
-    {                                                                      \
-      FILE * const wordlist = open_path(b, p, wordlist_filenames[i], "r"); \
-      if (wordlist)                                                        \
-        return wordlist;                                                   \
-    }                                                                      \
+#define RETURN_IF_READABLE(b, p)                                    \
+  do                                                                \
+    {                                                               \
+      std::string wordlist = std::string(b) + "/" + p + "/" + name; \
+      if (!access(wordlist.c_str(), F_OK))                          \
+        return wordlist;                                            \
+    }                                                               \
   while (0)
 
-      char * xdg_data_home = getenv("XDG_DATA_HOME");
+      char const * const xdg_data_home = getenv("XDG_DATA_HOME");
       if (xdg_data_home && xdg_data_home[0])
         RETURN_IF_READABLE(xdg_data_home, "");
       else
@@ -54,51 +52,35 @@ static FILE * find_wordlist(void)
         RETURN_IF_READABLE(data_dir, "");
     }
 
-  return NULL;
+  return "";
 }
 
 struct src : cwlsrc
 {
-  FILE * wordlist;
-  char next[1024];
+  std::ifstream wordlist;
+  std::string next;
 
-  int has_next();
-  size_t len();
-  void get(agram_dchar *);
+  int has_next()
+  {
+    std::getline(wordlist, next);
+    return wordlist.good();
+  }
+
+  size_t len() { return next.size(); }
+  void get(agram_dchar * const out) { strcpy(out, next.data()); }
+
+  src(std::string & fn) : wordlist(fn) {}
 };
 
-int src::has_next()
+int init_wl(wordlist & wl)
 {
-  if (fgets(next, 1024, wordlist) == NULL)
-    return 0;
-  char * const newline = strchr(next, '\n');
-  if (!newline || newline == next)
-    return 0;
-  *newline = 0;
-  return 1;
-}
-
-size_t src::len()
-{
-  return strlen(next);
-}
-
-void src::get(agram_dchar * out)
-{
-  strcpy(out, next);
-}
-
-int init_wl(struct wordlist * const wl)
-{
-  src sr;
-  sr.wordlist = find_wordlist();
-  if (!sr.wordlist)
+  std::string wordlist = find_wordlist();
+  if (wordlist.empty())
     {
-      fprintf(stderr, "error: No wordlist was found.\n");
-      fprintf(stderr, "Wordlists are searched for in $XDG_DATA_DIRS/agram/words and $XDG_DATA_DIRS/dict/words.\n");
-      fprintf(stderr, "A wordlist may also be specified in AGRAM_WORDLIST.\n");
+      std::cerr << "error: No wordlist was found." << std::endl;
+      std::cerr << "Wordlists are searched for in $XDG_DATA_DIRS/agram/words and $XDG_DATA_DIRS/dict/words." << std::endl;
+      std::cerr << "A wordlist may also be specified in AGRAM_WORDLIST." << std::endl;
       return 1;
     }
-
-  return sr.build_wl(wl);
+  return src(wordlist).build_wl(&wl);
 }

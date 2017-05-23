@@ -68,7 +68,7 @@ int main(int argc, char * argv[])
   setlocale(LC_ALL, "");
 
   struct wordlist wl;
-  if (init_wl(&wl))
+  if (init_wl(wl))
     return 1;
   if (argc < 2)
     return usage(argv[0]);

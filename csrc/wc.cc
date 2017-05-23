@@ -2,8 +2,8 @@
 
 #include <array>
 #include <cstddef>
-#include <cstdio>
-#include <cstring>
+#include <fstream>
+#include <utility>
 #include <vector>
 
 #include "agram_types.h"
@@ -53,64 +53,74 @@ int cwlsink::compile(cwlsrc & src)
 
 struct file_sink : cwlsink
 {
-  FILE * i;
-  FILE * s;
-  FILE * c;
-  FILE * n;
-  FILE * b;
+  std::ofstream i;
+  std::ofstream s;
+  std::ofstream c;
+  std::ofstream n;
+  std::ofstream b;
   agram_size NWORDS;
 
   int each(lc const *, agram_dchar const *, agram_cpt const *, unsigned int const *);
   int all();
+
+  file_sink(std::string const & base) : i(base + ".i", std::ios::binary), s(base + ".s", std::ios::binary), c(base + ".c", std::ios::binary), n(base + ".n", std::ios::binary), b(base, std::ios::binary), NWORDS(0) {}
 };
+
+template <typename T>
+static inline void swrite(std::ofstream & out, T const * dat, size_t nelems)
+{
+  out.write(reinterpret_cast<char const *>(dat), sizeof(*dat) * nelems);
+}
+
+template <typename T>
+static inline void swrite(std::ofstream & out, T const & con)
+{
+  swrite(out, con.data(), con.size());
+}
+
+template <typename T, typename U, size_t N>
+static constexpr std::array<T, N> sadcast(std::array<U, N> const & src)
+{
+  std::array<T, N> dst = {};
+  for (size_t i = 0; i < N; ++i)
+    dst[i] = static_cast<T>(src[i]);
+  return std::move(dst);
+}
 
 int file_sink::each(lc const * const index, agram_dchar const * const str, agram_cpt const * const chars, unsigned int const * const counts)
 {
   NWORDS++;
-  return fwrite(index, sizeof(*index), 1, i) != 1 || fwrite(str, sizeof(*str), index->len, s) != index->len || fwrite(chars, sizeof(*chars), index->nchars, c) != index->nchars || fwrite(counts, sizeof(*counts), index->nchars, n) != index->nchars;
+  swrite(i, index, 1);
+  swrite(s, str, index->len);
+  swrite(c, chars, index->nchars);
+  swrite(n, counts, index->nchars);
+  return !(i.good() && s.good() && c.good() && n.good());
 }
 
 int file_sink::all()
 {
-  std::array<long, 4> tells = {ftell(i), ftell(s), ftell(c), ftell(n)};
-  for (long t : tells)
+  std::array<std::ofstream::pos_type, 4> tells = {i.tellp(), s.tellp(), c.tellp(), n.tellp()};
+  for (auto t : tells)
     if (t == -1)
       return 1;
 
-  return (fwrite(&NWORDS, sizeof(NWORDS), 1, b) != 1 || fwrite(tells.data(), sizeof(*tells.data()), tells.size(), b) != tells.size());
+  auto ltells = sadcast<long>(tells);
+  swrite(b, &NWORDS, 1);
+  swrite(b, ltells);
+
+  std::array<std::ofstream *, 5> streams = {&i, &s, &c, &n, &b};
+  for (auto st : streams)
+    {
+      st->flush();
+      if (!st->good())
+        return 1;
+    }
+  return 0;
 }
 
 int cwlsrc::compile_wl(const char * outfn)
 {
-  int failed = 1;
-  struct file_sink sink;
-  char fne[strlen(outfn) + 3];
-
-#define FOF(suffix, fail)             \
-  sprintf(fne, "%s." #suffix, outfn); \
-  sink.suffix = fopen(fne, "wb");     \
-  if (!sink.suffix)                   \
-    fail;
-
-  FOF(i, return 1)
-  FOF(s, goto fail_i)
-  FOF(c, goto fail_s)
-  FOF(n, goto fail_c)
-  if (!(sink.b = fopen(outfn, "wb")))
-    goto fail_n;
-  sink.NWORDS = 0;
-
-  failed = sink.compile(*this);
-  failed |= fclose(sink.b);
-fail_n:
-  failed |= fclose(sink.n);
-fail_c:
-  failed |= fclose(sink.c);
-fail_s:
-  failed |= fclose(sink.s);
-fail_i:
-  failed |= fclose(sink.i);
-  return failed;
+  return file_sink(outfn).compile(*this);
 }
 
 struct mem_sink : cwlsink
