@@ -5,7 +5,6 @@
 #include <limits>
 
 #include "agram_types.h"
-#include "is_within.h"
 #include "lcwc.h"
 #include "wordlist.h"
 
@@ -17,7 +16,7 @@ int words_from(wordlist const & wl, agram_dchar const * const str, size_t const 
     for (auto & c : target.counts)
       c = std::numeric_limits<unsigned int>::max();
   for (agram_size i = 0; i < wl.nwords; i++)
-    if (is_within_lw(&wl, wl.words_counts + i, &target))
+    if (target.contains(wl, wl.words_counts[i]))
       if (cb(wl.words_counts[i].str + wl.strbase, wl.words_counts[i].len))
         return 2;
   return 0;

@@ -31,6 +31,8 @@ struct wc
 
   void sub_s(wordlist const *, wc const *, lc const *);
   wc(agram_dchar const *, size_t);
+  bool is_anagram(wordlist const &, lc const &) const;
+  bool contains(wordlist const &, lc const &) const;
 
   wc() : len(0), hash(0) {}
   void hash_chars() { hash = wc_hash_chars(chars); }

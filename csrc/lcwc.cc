@@ -54,3 +54,45 @@ wc::wc(const agram_dchar * const sstr, const size_t slen) : len(slen), hash(0)
   lettercounts(counts, chars, sstr, slen);
   hash_chars();
 }
+
+bool wc::is_anagram(wordlist const & wl, lc const & b) const
+{
+  if (len != b.len)
+    return false;
+  if (chars.size() != b.nchars)
+    return false;
+  for (unsigned int i = 0; i < b.nchars; ++i)
+    {
+      if (chars[i] != wl.charsbase[b.chars + i])
+        return false;
+      if (counts[i] != wl.countsbase[b.chars + i])
+        return false;
+    }
+  return true;
+}
+
+bool wc::contains(wordlist const & wl, lc const & a) const
+{
+  if ((a.hash & hash) != a.hash)
+    return false;
+  unsigned int i = 0, j = 0;
+  while (i < a.nchars)
+    {
+      if (j >= chars.size())
+        return false;
+
+      if (wl.charsbase[a.chars + i] < chars[j])
+        return false;
+
+      else if (wl.charsbase[a.chars + i] == chars[j])
+        if (wl.countsbase[a.chars + i] > counts[j])
+          return false;
+        else
+          ++i;
+
+      else if (wl.charsbase[a.chars + i] > chars[j])
+        ++j;
+    }
+
+  return true;
+}

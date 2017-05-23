@@ -4,22 +4,21 @@
 
 #include "agram_types.h"
 #include "anagrams.h"
-#include "is_within.h"
 #include "lcwc.h"
 #include "wordlist.h"
 
 static void filter_lc(wordlist const & wl, std::vector<lc *> & out, std::vector<lc *> const & in, size_t const skip, wc const & target)
 {
   for (auto it = in.begin() + skip; it != in.end(); ++it)
-    if (is_within_lw(&wl, *it, &target))
+    if (target.contains(wl, **it))
       out.push_back(*it);
 }
 
 static void filter_lc(wordlist const & wl, std::vector<lc *> & out, wc const & target)
 {
   for (agram_size i = 0; i < wl.nwords; ++i)
-    if (is_within_lw(&wl, wl.words_counts + i, &target))
-      out.push_back(wl.words_counts + i);
+    if (target.contains(wl, wl.words_counts + i))
+      out.push_back(wl.words_counts[i]);
 }
 
 size_t agsto::single()
