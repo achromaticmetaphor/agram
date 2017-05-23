@@ -70,11 +70,31 @@ static const struct wordlist * get_wordlist_handle(JNIEnv * const env, jobject c
   return wlhandle;
 }
 
+static int stradd(JNIEnv * const env, jobject const obj, jmethodID const mid, jchar const * str, size_t const len)
+{
+  jstring const s = env->NewString(str, len);
+  if (!s)
+    return 1;
+  env->CallBooleanMethod(obj, mid, s);
+  env->DeleteLocalRef(s);
+  return 0;
+}
+
 struct al
 {
   JNIEnv * env;
   jmethodID aladd;
   jobject alinstance;
+
+  int add(jchar const * const str, size_t const len)
+  {
+    return stradd(env, alinstance, aladd, str, len);
+  }
+
+  int operator()(jchar const * const str, size_t const len)
+  {
+    return add(str, len);
+  }
 };
 
 static int alinit(struct al * const al, JNIEnv * const env)
@@ -87,32 +107,16 @@ static int alinit(struct al * const al, JNIEnv * const env)
   return !al->alinstance;
 }
 
-static int stradd(JNIEnv * const env, jobject const obj, jmethodID const mid, jchar const * str, size_t const len)
-{
-  jstring const s = env->NewString(str, len);
-  if (!s)
-    return 1;
-  env->CallBooleanMethod(obj, mid, s);
-  env->DeleteLocalRef(s);
-  return 0;
-}
-
-static int aladd(jchar const * str, size_t const len, void * const val)
-{
-  struct al * const al = (struct al *) val;
-  return stradd(al->env, al->alinstance, al->aladd, str, len);
-}
-
 extern "C" JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagram_generate(JNIEnv * const env, const jobject obj, const jstring string)
 {
   const struct wordlist * const wl = get_wordlist_handle(env, obj);
   if (!wl)
     return nullptr;
-  struct al al;
+  al al;
   jchar const * const str = alinit(&al, env) ? nullptr : env->GetStringChars(string, nullptr);
   if (str)
     {
-      anagram(wl, str, env->GetStringLength(string), aladd, &al);
+      anagram(*wl, str, env->GetStringLength(string), al);
       env->ReleaseStringChars(string, str);
     }
   return al.alinstance;
@@ -127,7 +131,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_WordsFrom_
   jchar const * const str = alinit(&al, env) ? nullptr : env->GetStringChars(string, nullptr);
   if (str)
     {
-      words_from(wl, str, env->GetStringLength(string), max, aladd, &al);
+      words_from(*wl, str, env->GetStringLength(string), max, al);
       env->ReleaseStringChars(string, str);
     }
   return al.alinstance;
@@ -158,7 +162,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_g
   jchar const * const str = alinit(&al, env) ? nullptr : env->GetStringChars(string, nullptr);
   if (str)
     {
-      anagrams(*wl, str, env->GetStringLength(string), aladd, &al);
+      anagrams(*wl, str, env->GetStringLength(string), al);
       env->ReleaseStringChars(string, str);
     }
   return al.alinstance;
@@ -274,7 +278,7 @@ extern "C" JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_g
       size_t const slen = state->single();
       if (!slen)
         break;
-      if (aladd(state->prefix.data() + 1, slen, &al))
+      if (al.add(state->prefix.data() + 1, slen))
         break;
     }
   return al.alinstance;

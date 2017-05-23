@@ -1,10 +1,10 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <clocale>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <iostream>
 #include <unistd.h>
 
 #include "anagram.h"
@@ -13,32 +13,31 @@
 #include "words_from.h"
 #include "xdgwl.h"
 
-static int prn(const agram_dchar * str, size_t len, void * vfd)
+static int prn(const agram_dchar * str, size_t const len)
 {
-  agram_dchar ostr[len + 2];
-  memcpy(ostr, str, len * sizeof(*ostr));
-  ostr[len] = '\n';
-  ostr[len + 1] = 0;
-  return fputs(ostr, static_cast<FILE *>(vfd)) == EOF;
+  for (size_t i = 0; i < len; ++i)
+    std::cout << str[i];
+  std::cout << std::endl;
+  return 0;
 }
 
 static int usage(const char * pn)
 {
-  fprintf(stderr, "usage: %s <single|multi|random|contained> <string>\n", pn);
+  std::cerr << "usage: " << pn << " <single|multi|random|contained> <string>" << std::endl;
   return 1;
 }
 
-static int single(const struct wordlist * const wl, int argc, char * argv[])
+static int single(wordlist const & wl, int argc, char * argv[])
 {
   if (argc == 3)
-    return anagram(wl, argv[2], strlen(argv[2]), prn, stdout);
+    return anagram(wl, argv[2], strlen(argv[2]), prn);
   return usage(argv[0]);
 }
 
 static int multi(wordlist const & wl, int argc, char * argv[])
 {
   if (argc == 3)
-    return anagrams(wl, argv[2], strlen(argv[2]), prn, stdout);
+    return anagrams(wl, argv[2], strlen(argv[2]), prn);
   return usage(argv[0]);
 }
 
@@ -51,16 +50,16 @@ static int random(const struct wordlist * const wl, int argc, char * argv[])
   for (long int i = 0; i < count; i++)
     {
       const int n = rand() % wl->nwords;
-      if (prn(wl->words_counts[n].str + wl->strbase, wl->words_counts[n].len, stdout))
+      if (prn(wl->words_counts[n].str + wl->strbase, wl->words_counts[n].len))
         return 1;
     }
   return 0;
 }
 
-static int contained(const struct wordlist * const wl, int argc, char * argv[])
+static int contained(wordlist const & wl, int argc, char * argv[])
 {
   if (argc >= 3)
-    return words_from(wl, argv[2], strlen(argv[2]), argc >= 4, prn, stdout);
+    return words_from(wl, argv[2], strlen(argv[2]), argc >= 4, prn);
   return usage(argv[0]);
 }
 
@@ -77,13 +76,13 @@ int main(int argc, char * argv[])
   switch (argv[1][0])
     {
       case 's':
-        return single(&wl, argc, argv);
+        return single(wl, argc, argv);
       case 'm':
         return multi(wl, argc, argv);
       case 'r':
         return random(&wl, argc, argv);
       case 'c':
-        return contained(&wl, argc, argv);
+        return contained(wl, argc, argv);
       default:
         return usage(argv[0]);
     }

@@ -68,11 +68,3 @@ agsto::agsto(wordlist const & wl, agram_dchar const * const str, size_t const le
   states[0].wcsi = 0;
   filter_lc(wl, states[0].wcs, target);
 }
-
-int anagrams(wordlist const & wl, agram_dchar const * const str, size_t const len, int (*const cb)(agram_dchar const *, size_t, void *), void * const cba)
-{
-  struct agsto ostate(wl, str, len);
-  while (size_t slen = ostate.single())
-    if (cb(ostate.prefix.data() + 1, slen, cba))
-      return 2;
-}

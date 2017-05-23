@@ -31,6 +31,14 @@ struct agsto
   size_t single();
 };
 
-int anagrams(wordlist const &, agram_dchar const *, size_t, int (*)(agram_dchar const *, size_t, void *), void *);
+template <typename CB>
+int anagrams(wordlist const & wl, agram_dchar const * const str, size_t const len, CB & cb)
+{
+  struct agsto ostate(wl, str, len);
+  while (size_t slen = ostate.single())
+    if (cb(ostate.prefix.data() + 1, slen))
+      return 2;
+  return 0;
+}
 
 #endif
