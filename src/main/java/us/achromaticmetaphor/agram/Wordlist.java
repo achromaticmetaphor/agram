@@ -15,8 +15,6 @@ import java.security.NoSuchAlgorithmException;
 public class Wordlist implements Serializable {
 
   public static byte currentVersion = 3;
-  private static byte[] oldVersions = {2};
-
   private byte[] wordlist_handle = null;
 
   static {
@@ -57,24 +55,12 @@ public class Wordlist implements Serializable {
     load(filesDir, in, label, null);
   }
 
-  private static native boolean upgrade(String oldpath, String newpath, byte oldversion);
-
-  private static boolean upgrade(File filesDir, String label) {
-    for (byte ver : oldVersions) {
-      File oldList = new File(filesDir, transformLabel(label, ver));
-      File newList = new File(filesDir, transformLabel(label));
-      if (oldList.exists() && upgrade(oldList.getAbsolutePath(), newList.getAbsolutePath(), ver))
-        return true;
-    }
-    return false;
-  }
-
   public void load(final File filesDir, final InputStream in, final String label, final OnCompleteListener listen) {
     (new AsyncTask<Void, Void, Boolean>() {
       protected Boolean doInBackground(Void... v) {
         synchronized (Wordlist.class) {
           File wlfile = new File(filesDir, transformLabel(label));
-          if (wlfile.exists() || upgrade(filesDir, label))
+          if (wlfile.exists())
             return init(wlfile.getAbsolutePath());
           else
             return init(wlfile.getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));

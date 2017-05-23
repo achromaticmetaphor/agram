@@ -2,7 +2,6 @@
 #define AGRAM_TYPES_H
 
 #if AGRAM_ANDROID
-#define AGRAM_MMAP 1
 #include <jni.h>
 typedef jint agram_cpt;
 typedef jchar agram_dchar;

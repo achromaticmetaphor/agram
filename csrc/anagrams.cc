@@ -7,18 +7,18 @@
 #include "lcwc.h"
 #include "wordlist.h"
 
-static void filter_lc(wordlist const & wl, std::vector<lc *> & out, std::vector<lc *> const & in, size_t const skip, wc const & target)
+static void filter_lc(wordlist const & wl, std::vector<lc const *> & out, std::vector<lc const *> const & in, size_t const skip, wc const & target)
 {
   for (auto it = in.begin() + skip; it != in.end(); ++it)
     if (target.contains(wl, **it))
       out.push_back(*it);
 }
 
-static void filter_lc(wordlist const & wl, std::vector<lc *> & out, wc const & target)
+static void filter_lc(wordlist const & wl, std::vector<lc const *> & out, wc const & target)
 {
-  for (agram_size i = 0; i < wl.nwords; ++i)
-    if (target.contains(wl, wl.words_counts + i))
-      out.push_back(wl.words_counts[i]);
+  for (auto & lc : wl.words_counts)
+    if (target.contains(wl, lc))
+      out.push_back(&lc);
 }
 
 size_t agsto::single()
@@ -34,7 +34,7 @@ size_t agsto::single()
       else
         {
           for (unsigned int i = 0; i < state.current()->len; ++i)
-            prefix[state.offset + 1 + i] = (wl.strbase + state.current()->str)[i];
+            prefix[state.offset + 1 + i] = wl.strbase[state.current()->str + i];
           if (state.target.len == state.current()->len)
             return state.offset + state.advance()->len;
           else

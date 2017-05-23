@@ -2,79 +2,41 @@
 
 #include <cstddef>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
+#include <vector>
 
 #include "agram_types.h"
 #include "lcwc.h"
 #include "wordlist.h"
 
-#if AGRAM_MMAP
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
-
-static void unload_wl_s(struct wordlist * const wl, const int n)
+struct file
 {
-  switch (n)
-    {
+  FILE * fh;
 
-#if AGRAM_MMAP
-#define MUNMAP(mapping)           \
-  munmap(mapping, mapping##_len); \
-  mapping##_len = 0;
-#else
-#define MUNMAP(mapping) \
-  free(mapping);        \
-  mapping##_len = 0;
-#endif
+  file(char const * const fn) { fh = fopen(fn, "rb"); }
+  ~file()
+  {
+    if (fh != nullptr)
+      fclose(fh);
+  }
+};
 
-      default:
-      case 5:
-        MUNMAP(wl->countsbase)
-      case 4:
-        MUNMAP(wl->charsbase)
-      case 3:
-        MUNMAP(wl->strbase)
-      case 2:
-        MUNMAP(wl->words_counts)
-      case 1:
-        wl->nwords = 0;
-      case 0:;
-    }
+template <typename T>
+static bool read_file(std::vector<T> & out, char const * const fn, unsigned long const nelems)
+{
+  file fh(fn);
+  if (fh.fh == nullptr)
+    return false;
+  out.resize(nelems);
+  return fread(out.data(), sizeof(T), nelems, fh.fh) == nelems;
 }
 
-void unload_wl(struct wordlist * const wl)
+template <char E, typename T>
+static bool read_file_ext(std::vector<T> & out, char const * const fn, long const tell)
 {
-  unload_wl_s(wl, 5);
-}
-
-static void * omap(const char * const fn, long const tell)
-{
-#if AGRAM_MMAP
-  int fd;
-  struct stat st;
-  void * const mapping = (fd = open(fn, O_RDONLY)) != -1 && !fstat(fd, &st) && st.st_size == tell ? mmap(0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0) : MAP_FAILED;
-  close(fd);
-  return mapping == MAP_FAILED ? nullptr : mapping;
-#else
-  void * const mapping = malloc(tell);
-  if (mapping)
-    {
-      int read = 0;
-      FILE * const fi = fopen(fn, "rb");
-      if (fi)
-        {
-          read = fread(mapping, 1, tell, fi) == tell;
-          fclose(fi);
-        }
-      if (!read)
-        return free(mapping), nullptr;
-    }
-  return mapping;
-#endif
+  char fne[strlen(fn) + 3];
+  sprintf(fne, "%s.%c", fn, E);
+  return read_file(out, fne, tell / sizeof(T));
 }
 
 int load_wl(struct wordlist * const wl, const char * const fn)
@@ -84,24 +46,20 @@ int load_wl(struct wordlist * const wl, const char * const fn)
   if (!fi)
     return 1;
 
-  const int failed = fread(&wl->nwords, sizeof(wl->nwords), 1, fi) != 1 || fread(tells, sizeof(*tells), 4, fi) != 4;
+  agram_size nwords;
+  const int failed = fread(&nwords, sizeof(nwords), 1, fi) != 1 || fread(tells, sizeof(*tells), 4, fi) != 4;
   fclose(fi);
   if (failed)
-    return unload_wl_s(wl, 1), 1;
+    return 1;
 
-  char fne[strlen(fn) + 3];
-
-#define OMAP(suffix, wl, mapping, depth, tell)         \
-  sprintf(fne, "%s." #suffix, fn);                     \
-  wl->mapping = (typeof(wl->mapping)) omap(fne, tell); \
-  if (!wl->mapping)                                    \
-    return unload_wl_s(wl, depth), 1;                  \
-  wl->mapping##_len = tell;
-
-  OMAP(i, wl, words_counts, 1, tells[0])
-  OMAP(s, wl, strbase, 2, tells[1])
-  OMAP(c, wl, charsbase, 3, tells[2])
-  OMAP(n, wl, countsbase, 4, tells[3])
+  if (read_file_ext<'i'>(wl->words_counts, fn, tells[0]))
+    return 1;
+  if (read_file_ext<'s'>(wl->strbase, fn, tells[1]))
+    return 1;
+  if (read_file_ext<'c'>(wl->charsbase, fn, tells[2]))
+    return 1;
+  if (read_file_ext<'n'>(wl->countsbase, fn, tells[3]))
+    return 1;
 
   return 0;
 }

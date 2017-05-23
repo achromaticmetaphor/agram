@@ -49,8 +49,8 @@ static int random(const struct wordlist * const wl, int argc, char * argv[])
   srand(tv.tv_sec ^ tv.tv_nsec);
   for (long int i = 0; i < count; i++)
     {
-      const int n = rand() % wl->nwords;
-      if (prn(wl->words_counts[n].str + wl->strbase, wl->words_counts[n].len))
+      const int n = rand() % wl->words_counts.size();
+      if (prn(wl->words_counts[n].str + wl->strbase.data(), wl->words_counts[n].len))
         return 1;
     }
   return 0;

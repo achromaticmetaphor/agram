@@ -12,11 +12,11 @@ struct agst
 {
   wc target;
   size_t offset;
-  std::vector<lc *> wcs;
+  std::vector<lc const *> wcs;
   size_t wcsi;
 
-  lc * const & current() const { return wcs[wcsi]; }
-  lc *& advance() { return wcs[wcsi++]; }
+  lc const * const & current() const { return wcs[wcsi]; }
+  lc const *& advance() { return wcs[wcsi++]; }
   bool exhausted() const { return wcsi >= wcs.size(); }
 };
 

@@ -1,7 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <cstddef>
-#include <cstdlib>
 
 #include <jni.h>
 
@@ -9,7 +8,6 @@
 #include "anagram.h"
 #include "anagrams.h"
 #include "wc.h"
-#include "wl_upgrade.h"
 #include "wordlist.h"
 #include "words_from.h"
 
@@ -142,7 +140,7 @@ extern "C" JNIEXPORT jstring JNICALL Java_us_achromaticmetaphor_agram_Word_pick_
   const struct wordlist * const wl = (struct wordlist *) get_marshalled_pointer(env, wordlist, "wordlist_handle");
   if (!wl)
     return nullptr;
-  return env->NewString(wl->words_counts[n].str + wl->strbase, wl->words_counts[n].len);
+  return env->NewString(wl->words_counts[n].str + wl->strbase.data(), wl->words_counts[n].len);
 }
 
 extern "C" JNIEXPORT jint JNICALL Java_us_achromaticmetaphor_agram_Wordlist_get_1nwords(JNIEnv * const env, const jobject obj)
@@ -150,7 +148,7 @@ extern "C" JNIEXPORT jint JNICALL Java_us_achromaticmetaphor_agram_Wordlist_get_
   const struct wordlist * const wl = (struct wordlist *) get_marshalled_pointer(env, obj, "wordlist_handle");
   if (!wl)
     return 0;
-  return wl->nwords;
+  return wl->words_counts.size();
 }
 
 extern "C" JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_generate__Ljava_lang_String_2(JNIEnv * const env, const jobject obj, const jstring string)
@@ -206,7 +204,7 @@ wr::wr(JNIEnv * const env, jobject const jwords) : env(env), wrinstance(jwords),
 
 extern "C" JNIEXPORT void JNICALL Java_us_achromaticmetaphor_agram_Wordlist_loadNullWordlist(JNIEnv * const env, jobject const obj)
 {
-  static const struct wordlist nullwl = {0};
+  static const struct wordlist nullwl;
   put_marshalled_pointer(env, obj, "wordlist_handle", &nullwl);
 }
 
@@ -225,7 +223,7 @@ extern "C" JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Wordlist_
 extern "C" JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Wordlist_init__Ljava_lang_String_2(JNIEnv * const env, jobject const obj, jstring const jfn)
 {
   const char * const fn = env->GetStringUTFChars(jfn, 0);
-  struct wordlist * const wl = fn ? (struct wordlist *) malloc(sizeof(*wl)) : nullptr;
+  struct wordlist * const wl = fn ? new wordlist : nullptr;
   const int failure = wl ? load_wl(wl, fn) : 1;
   if (fn)
     env->ReleaseStringUTFChars(jfn, fn);
@@ -282,22 +280,4 @@ extern "C" JNIEXPORT jobject JNICALL Java_us_achromaticmetaphor_agram_Anagrams_g
         break;
     }
   return al.alinstance;
-}
-
-extern "C" JNIEXPORT jboolean JNICALL Java_us_achromaticmetaphor_agram_Wordlist_upgrade(JNIEnv * const env, jclass const cl, jstring const jfnold, jstring const jfnnew, jbyte const version)
-{
-  if (!agram_wl_can_upgrade(version))
-    return JNI_FALSE;
-
-  const char * const fnold = env->GetStringUTFChars(jfnold, 0);
-  const char * const fnnew = fnold ? env->GetStringUTFChars(jfnnew, 0) : nullptr;
-
-  int const failure = fnnew ? agram_wl_upgrade(fnold, fnnew, version) : 1;
-
-  if (fnnew)
-    env->ReleaseStringUTFChars(jfnnew, fnnew);
-  if (fnold)
-    env->ReleaseStringUTFChars(jfnold, fnold);
-
-  return failure ? JNI_FALSE : JNI_TRUE;
 }

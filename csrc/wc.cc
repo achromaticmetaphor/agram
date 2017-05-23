@@ -138,16 +138,13 @@ int mem_sink::each(lc const * const index, agram_dchar const * const str, agram_
 
 int cwlsrc::build_wl(struct wordlist * const wl)
 {
-  mem_sink & sink = *new mem_sink; // TODO FIXME intentional memory leak of vector backing arrays pending cleanup of C code
+  mem_sink sink;
   if (sink.compile(*this))
     return 1;
-  else
-    {
-      wl->nwords = sink.words_counts.size();
-      wl->words_counts = sink.words_counts.data();
-      wl->strbase = sink.strbase.data();
-      wl->charsbase = sink.charsbase.data();
-      wl->countsbase = sink.countsbase.data();
-      return 0;
-    }
+
+  wl->words_counts = std::move(sink.words_counts);
+  wl->strbase = std::move(sink.strbase);
+  wl->charsbase = std::move(sink.charsbase);
+  wl->countsbase = std::move(sink.countsbase);
+  return 0;
 }
