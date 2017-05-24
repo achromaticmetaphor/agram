@@ -1,11 +1,9 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <clocale>
-#include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <iostream>
-#include <unistd.h>
+#include <random>
 
 #include "anagram.h"
 #include "anagrams.h"
@@ -41,17 +39,16 @@ static int multi(wordlist const & wl, int argc, char * argv[])
   return usage(argv[0]);
 }
 
-static int random(const struct wordlist * const wl, int argc, char * argv[])
+static int shuffled(wordlist const & wl, int argc, char * argv[])
 {
   const long int count = argc >= 3 ? atol(argv[2]) : 1;
-  struct timespec tv;
-  clock_gettime(CLOCK_REALTIME, &tv);
-  srand(tv.tv_sec ^ tv.tv_nsec);
-  for (long int i = 0; i < count; i++)
+  std::random_device rd;
+  std::default_random_engine dre(rd());
+  std::uniform_int_distribution<agram_size> dist(0, wl.words_counts.size());
+  for (long int i = 0; i < count; ++i)
     {
-      const int n = rand() % wl->words_counts.size();
-      if (prn(wl->words_counts[n].str + wl->strbase.data(), wl->words_counts[n].len))
-        return 1;
+      agram_size const n = dist(dre);
+      prn(wl.words_counts[n].str + wl.strbase.data(), wl.words_counts[n].len);
     }
   return 0;
 }
@@ -80,7 +77,7 @@ int main(int argc, char * argv[])
       case 'm':
         return multi(wl, argc, argv);
       case 'r':
-        return random(&wl, argc, argv);
+        return shuffled(wl, argc, argv);
       case 'c':
         return contained(wl, argc, argv);
       default:
