@@ -12,7 +12,7 @@ struct cwlsrc
   virtual ~cwlsrc() {}
   virtual int has_next() = 0;
   virtual size_t len() = 0;
-  virtual void get(agram_dchar *) = 0;
+  virtual agram_dchar const * get() = 0;
 
   int compile_wl(const char *);
   int build_wl(struct wordlist *);

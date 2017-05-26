@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "agram_types.h"
+#include "vlasub.h"
 
 #if AGRAM_ANDROID
 #include "astr.h"
@@ -27,12 +28,12 @@ static void lettercounts(std::vector<unsigned int> & counts, std::vector<agram_c
 void lettercounts(std::vector<unsigned int> & counts, std::vector<agram_cpt> & letters, const agram_dchar * const str, const size_t slen)
 {
 #if AGRAM_ANDROID
-  agram_cpt tmp[slen + 1];
+  vlasub<agram_cpt> tmp(slen + 1);
   uastrcpy(tmp, str, slen);
   lettercounts(counts, letters, tmp);
 #else
   const size_t wlen = mbstowcs(nullptr, str, 0);
-  agram_cpt tmp[wlen + 1];
+  vlasub<agram_cpt> tmp(wlen + 1);
   mbstowcs(tmp, str, wlen + 1);
   lettercounts(counts, letters, tmp);
 #endif

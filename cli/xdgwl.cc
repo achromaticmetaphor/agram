@@ -10,6 +10,7 @@
 
 #include <unistd.h>
 
+#include "vlasub.h"
 #include "wc.h"
 #include "wordlist.h"
 
@@ -46,7 +47,7 @@ static std::string find_wordlist(void)
       if (!xdg_data_dirs || !xdg_data_dirs[0])
         xdg_data_dirs = "/usr/local/share/:/usr/share/";
 
-      char xdg_data_dirs_m[strlen(xdg_data_dirs) + 1];
+      vlasub<char> xdg_data_dirs_m(strlen(xdg_data_dirs) + 1);
       strcpy(xdg_data_dirs_m, xdg_data_dirs);
       for (char * data_dir = strtok(xdg_data_dirs_m, ":"); data_dir; data_dir = strtok(NULL, ":"))
         RETURN_IF_READABLE(data_dir, "");
@@ -67,7 +68,7 @@ struct src : cwlsrc
   }
 
   size_t len() { return next.size(); }
-  void get(agram_dchar * const out) { strcpy(out, next.data()); }
+  agram_dchar const * get() { return next.data(); }
 
   src(std::string & fn) : wordlist(fn) {}
 };

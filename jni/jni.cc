@@ -172,15 +172,18 @@ struct wr : cwlsrc
   jmethodID wrread;
   jobject wrinstance;
   jstring wrcur;
+  jchar const * curchars;
 
   int has_next();
   size_t len();
-  void get(jchar *);
+  agram_dchar const * get();
   wr(JNIEnv *, jobject);
 };
 
 int wr::has_next()
 {
+  if (curchars)
+    env->ReleaseStringChars(wrcur, curchars);
   if (wrcur)
     env->DeleteLocalRef(wrcur);
   return !!(wrcur = reinterpret_cast<jstring>(env->CallObjectMethod(wrinstance, wrread)));
@@ -191,12 +194,12 @@ size_t wr::len()
   return env->GetStringLength(wrcur);
 }
 
-void wr::get(jchar * const out)
+agram_dchar const * wr::get()
 {
-  env->GetStringRegion(wrcur, 0, len(), out);
+  return curchars = env->GetStringChars(wrcur, nullptr);
 }
 
-wr::wr(JNIEnv * const env, jobject const jwords) : env(env), wrinstance(jwords), wrcur(nullptr)
+wr::wr(JNIEnv * const env, jobject const jwords) : env(env), wrinstance(jwords), wrcur(nullptr), curchars(nullptr)
 {
   auto const wlreader = env->FindClass("us/achromaticmetaphor/agram/WordlistReader");
   wrread = wlreader ? env->GetMethodID(wlreader, "read", "()Ljava/lang/String;") : nullptr;

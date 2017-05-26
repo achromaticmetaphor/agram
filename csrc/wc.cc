@@ -32,8 +32,7 @@ int cwlsink::compile(cwlsrc & src)
       struct lc index;
       NWORDS++;
       index.len = src.len();
-      agram_dchar str[index.len + 1];
-      src.get(str);
+      agram_dchar const * const str = src.get();
       counts.clear();
       chars.clear();
       lettercounts(counts, chars, str, index.len);
