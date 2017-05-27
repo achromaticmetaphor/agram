@@ -18,9 +18,8 @@ public class Word {
     try {
       for (int i = 0; i < n; i++)
         words.add(pick(wl));
+    } catch (IllegalArgumentException iae) {
     }
-      catch (IllegalArgumentException iae) {}
     return words;
   }
-
 }

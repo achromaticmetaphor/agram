@@ -41,8 +41,7 @@ public class FileBrowser extends Activity {
           files = lsdir(file);
           listView.setAdapter(new ArrayAdapter(FileBrowser.this, android.R.layout.simple_list_item_1, files));
           cwd = file;
-        }
-        else {
+        } else {
           final String path = file.getAbsolutePath();
           AlertDialog.Builder build = new AlertDialog.Builder(FileBrowser.this);
           build.setTitle("Confirm selection");
@@ -66,7 +65,7 @@ public class FileBrowser extends Activity {
     List<String> files = new ArrayList<String>();
     files.add(dir.getAbsolutePath());
     files.add("../");
-    File [] ls = dir.listFiles();
+    File[] ls = dir.listFiles();
     Arrays.sort(ls, new Comparator<File>() {
       public int compare(File a, File b) {
         return a.getName().compareTo(b.getName());
@@ -74,10 +73,9 @@ public class FileBrowser extends Activity {
     });
     for (File f : ls) {
       if (f.canRead())
-        if (! f.isHidden())
+        if (!f.isHidden())
           files.add(f.isDirectory() ? f.getName() + "/" : f.getName());
     }
     return files;
   }
-
 }

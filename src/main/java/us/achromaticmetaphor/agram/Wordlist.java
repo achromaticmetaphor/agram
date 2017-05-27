@@ -15,9 +15,9 @@ import java.security.NoSuchAlgorithmException;
 public class Wordlist implements Serializable {
 
   public static byte currentVersion = 3;
-  private static byte [] oldVersions = {2};
+  private static byte[] oldVersions = {2};
 
-  private byte [] wordlist_handle = null;
+  private byte[] wordlist_handle = null;
 
   static {
     Native.load();
@@ -31,7 +31,7 @@ public class Wordlist implements Serializable {
     loadNullWordlist();
   }
 
-  private static native byte [] platform();
+  private static native byte[] platform();
   private native boolean init(String s, WordlistReader wl);
   private native boolean init(String s);
   public native int get_nwords();
@@ -44,8 +44,7 @@ public class Wordlist implements Serializable {
       dig.update(platform());
       dig.update(label.getBytes());
       return Base64.encodeToString(dig.digest(), Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
-    }
-    catch (NoSuchAlgorithmException nsae) {
+    } catch (NoSuchAlgorithmException nsae) {
       return label;
     }
   }

@@ -37,5 +37,4 @@ public class Anagram implements Generator {
     finished = true;
     return results;
   }
-
 }

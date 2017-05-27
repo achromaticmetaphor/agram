@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Anagrams implements Generator {
 
-  private byte [] handle = null;
+  private byte[] handle = null;
   private final Wordlist wordlist;
 
   public Anagrams(Wordlist wl) {
@@ -27,5 +27,4 @@ public class Anagrams implements Generator {
   public synchronized native void uninit();
 
   public boolean init(String s, boolean lng) { return init(s); }
-
 }

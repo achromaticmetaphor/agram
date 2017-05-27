@@ -39,5 +39,4 @@ public class WordsFrom implements Generator {
     finished = true;
     return results;
   }
-
 }

@@ -21,10 +21,8 @@ public class WordlistReader {
         s = reader.readLine();
       while (s != null && s.length() == 0);
       return Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD && s != null ? Normalizer.normalize(s, Normalizer.Form.NFC) : s;
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       return null;
     }
   }
-
 }

@@ -49,8 +49,7 @@ public class AnagramActivity extends Activity {
     else if (shareList == null) {
       shareList = new ArrayList<String>();
       promptCharacters();
-    }
-    else {
+    } else {
       ArrayAdapter adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, shareList);
       ListView listView = (ListView) findViewById(R.id.cmdlist);
       listView.setAdapter(adapter);
@@ -66,7 +65,7 @@ public class AnagramActivity extends Activity {
     final ListView listView = (ListView) findViewById(R.id.cmdlist);
     listView.setAdapter(adapter);
     (new AsyncTask<Void, Void, ArrayList<String>>() {
-      protected ArrayList<String> doInBackground(Void ... v) {
+      protected ArrayList<String> doInBackground(Void... v) {
         gen.init(input, longMode);
         return gen.generate(SCROLL_BY);
       }
@@ -108,7 +107,7 @@ public class AnagramActivity extends Activity {
     edit.selectAll();
     builder.setView(edit);
     builder.setTitle(gen.inputPrompt());
-    builder.setPositiveButton(gen.shortLabel(), new DialogInterface.OnClickListener () {
+    builder.setPositiveButton(gen.shortLabel(), new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface di, int button) {
         fixin(edit);
         longMode = false;
@@ -116,14 +115,14 @@ public class AnagramActivity extends Activity {
       }
     });
     if (gen.hasLongMode())
-      builder.setNeutralButton(gen.longLabel(), new DialogInterface.OnClickListener () {
+      builder.setNeutralButton(gen.longLabel(), new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface di, int button) {
           fixin(edit);
           longMode = true;
           refresh();
         }
       });
-    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener () {
+    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface di, int button) {}
     });
     builder.show();
@@ -194,11 +193,11 @@ public class AnagramActivity extends Activity {
     public void onScrollStateChanged(AbsListView v, int state) {}
 
     public void onScroll(AbsListView v, int first, int visible, int total) {
-      if (! filling)
-        if (total - (first + visible) < (SCROLL_BY/4)) {
+      if (!filling)
+        if (total - (first + visible) < (SCROLL_BY / 4)) {
           filling = true;
           (new AsyncTask<Void, Void, ArrayList<String>>() {
-            protected ArrayList<String> doInBackground(Void ... v) {
+            protected ArrayList<String> doInBackground(Void... v) {
               return gen.generate(SCROLL_BY);
             }
             protected void onPostExecute(ArrayList<String> list) {
@@ -223,7 +222,5 @@ public class AnagramActivity extends Activity {
       ((TextView) v.findViewById(android.R.id.text1)).setTypeface(Typeface.MONOSPACE);
       return v;
     }
-
   }
-
 }

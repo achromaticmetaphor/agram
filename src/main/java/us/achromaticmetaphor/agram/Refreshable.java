@@ -1,2 +1,3 @@
 package us.achromaticmetaphor.agram;
-public interface Refreshable {}
+public interface Refreshable {
+}

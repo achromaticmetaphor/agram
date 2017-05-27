@@ -52,7 +52,7 @@ public class MainActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_listview);
-    final String [] cmds = new String [] {"Single-word anagrams", "Multi-word anagrams", "Random words", "Contained words"};
+    final String[] cmds = new String[] {"Single-word anagrams", "Multi-word anagrams", "Random words", "Contained words"};
     final ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, cmds);
     ListView listView = (ListView) findViewById(R.id.cmdlist);
     listView.setAdapter(adapter);
@@ -66,7 +66,7 @@ public class MainActivity extends Activity {
     wordlist = new Wordlist();
     SharedPreferences prefs = getSharedPreferences("us.achromaticmetaphor.agram", MODE_PRIVATE);
     String selectedWordlist = prefs.getString(selectedWordlistKey, builtinWordlist);
-    if (! getWordlists().contains(selectedWordlist))
+    if (!getWordlists().contains(selectedWordlist))
       selectedWordlist = builtinWordlist;
     if (savedInstanceState != null && savedInstanceState.getBoolean("inprogress"))
       loadWordlist(savedInstanceState.getString("inprogressFilename"), savedInstanceState.getString("inprogressLabel"));
@@ -90,8 +90,7 @@ public class MainActivity extends Activity {
           pdia = null;
         }
       });
-    }
-    catch (IOException ioe) {
+    } catch (IOException ioe) {
       wordlistFail(label);
     }
   }
@@ -105,8 +104,8 @@ public class MainActivity extends Activity {
       for (int i = 0; i < len; i++)
         wordlists.add(dis.readUTF());
       dis.close();
+    } catch (IOException e) {
     }
-    catch (IOException e) {}
     return wordlists;
   }
 
@@ -117,14 +116,14 @@ public class MainActivity extends Activity {
       for (String s : wordlists)
         dos.writeUTF(s);
       dos.close();
+    } catch (IOException e) {
     }
-    catch (IOException e) {}
   }
 
   private void enrollWordlist(String label) {
     getSharedPreferences("us.achromaticmetaphor.agram", MODE_PRIVATE).edit().putString(selectedWordlistKey, label).commit();
     Set<String> wordlists = getWordlists();
-    if (! wordlists.contains(label)) {
+    if (!wordlists.contains(label)) {
       wordlists.add(label);
       setWordlists(wordlists);
     }
@@ -143,9 +142,9 @@ public class MainActivity extends Activity {
 
   private void chooseWordlist() {
     Set<String> wordlists = getWordlists();
-    final CharSequence [] wordlistsArray = wordlists.toArray(new CharSequence [0]);
+    final CharSequence[] wordlistsArray = wordlists.toArray(new CharSequence[0]);
     Arrays.sort(wordlistsArray);
-    final int selected [] = {Arrays.binarySearch(wordlistsArray, getSharedPreferences("us.achromaticmetaphor.agram", MODE_PRIVATE).getString(selectedWordlistKey, builtinWordlist))};
+    final int selected[] = {Arrays.binarySearch(wordlistsArray, getSharedPreferences("us.achromaticmetaphor.agram", MODE_PRIVATE).getString(selectedWordlistKey, builtinWordlist))};
     if (selected[0] < 0)
       selected[0] = -1;
 
@@ -164,7 +163,7 @@ public class MainActivity extends Activity {
     build.setNeutralButton("Choose file", new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface di, int i) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-          requestPermissions(new String [] {Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
+          requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
         else
           startActivityForResult(new Intent(MainActivity.this, FileBrowser.class), REQUEST_FILEBROWSER);
       }
@@ -238,10 +237,8 @@ public class MainActivity extends Activity {
   }
 
   @Override
-  public void onRequestPermissionsResult(int request, String [] perms, int [] results) {
-    if (request == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE && perms.length == 1
-     && perms[0].equals(Manifest.permission.READ_EXTERNAL_STORAGE) && results[0] == PackageManager.PERMISSION_GRANTED)
+  public void onRequestPermissionsResult(int request, String[] perms, int[] results) {
+    if (request == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE && perms.length == 1 && perms[0].equals(Manifest.permission.READ_EXTERNAL_STORAGE) && results[0] == PackageManager.PERMISSION_GRANTED)
       startActivityForResult(new Intent(MainActivity.this, FileBrowser.class), REQUEST_FILEBROWSER);
   }
-
 }

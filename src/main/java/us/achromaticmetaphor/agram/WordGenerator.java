@@ -14,10 +14,9 @@ public class WordGenerator implements Generator, Refreshable {
   private static int getInt(String s, int def) {
     try {
       return Integer.parseInt(s);
+    } catch (NumberFormatException nfe) {
+      return def;
     }
-      catch (NumberFormatException nfe) {
-        return def;
-      }
   }
 
   public ArrayList<String> generate(String s) {
@@ -51,5 +50,4 @@ public class WordGenerator implements Generator, Refreshable {
     }
     return Word.pick(wordlist, n);
   }
-
 }
