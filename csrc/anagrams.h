@@ -2,6 +2,7 @@
 #define ANAGRAMS_H
 
 #include <cstddef>
+#include <functional>
 #include <vector>
 
 #include "agram_types.h"
@@ -12,11 +13,11 @@ struct agst
 {
   wc target;
   size_t offset;
-  std::vector<lc const *> wcs;
+  std::vector<std::reference_wrapper<lc const>> wcs;
   size_t wcsi;
 
-  lc const * const & current() const { return wcs[wcsi]; }
-  lc const *& advance() { return wcs[wcsi++]; }
+  lc const & current() const { return wcs[wcsi]; }
+  lc const & advance() { return wcs[wcsi++]; }
   bool exhausted() const { return wcsi >= wcs.size(); }
 };
 

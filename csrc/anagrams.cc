@@ -1,24 +1,26 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <cstddef>
+#include <functional>
+#include <vector>
 
 #include "agram_types.h"
 #include "anagrams.h"
 #include "lcwc.h"
 #include "wordlist.h"
 
-static void filter_lc(wordlist const & wl, std::vector<lc const *> & out, std::vector<lc const *> const & in, size_t const skip, wc const & target)
+static void filter_lc(wordlist const & wl, std::vector<std::reference_wrapper<lc const>> & out, std::vector<std::reference_wrapper<lc const>> const & in, size_t const skip, wc const & target)
 {
   for (auto it = in.begin() + skip; it != in.end(); ++it)
-    if (target.contains(wl, **it))
+    if (target.contains(wl, *it))
       out.push_back(*it);
 }
 
-static void filter_lc(wordlist const & wl, std::vector<lc const *> & out, wc const & target)
+static void filter_lc(wordlist const & wl, std::vector<std::reference_wrapper<lc const>> & out, wc const & target)
 {
   for (auto & lc : wl.words_counts)
     if (target.contains(wl, lc))
-      out.push_back(&lc);
+      out.push_back(lc);
 }
 
 size_t agsto::single()
@@ -33,15 +35,15 @@ size_t agsto::single()
           --depth;
       else
         {
-          for (unsigned int i = 0; i < state.current()->len; ++i)
-            prefix[state.offset + 1 + i] = wl.strbase[state.current()->str + i];
-          if (state.target.len == state.current()->len)
-            return state.offset + state.advance()->len;
+          for (unsigned int i = 0; i < state.current().len; ++i)
+            prefix[state.offset + 1 + i] = wl.strbase[state.current().str + i];
+          if (state.target.len == state.current().len)
+            return state.offset + state.advance().len;
           else
             {
               auto & next_level = states[++depth];
-              next_level.target.sub_s(&wl, &state.target, state.current());
-              next_level.offset = state.offset + state.current()->len + 1;
+              next_level.target.sub_s(&wl, &state.target, &state.current());
+              next_level.offset = state.offset + state.current().len + 1;
 #if AGRAM_ANDROID
               prefix[next_level.offset] = 32;
 #else
