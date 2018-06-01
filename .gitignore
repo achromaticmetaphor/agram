@@ -3,6 +3,7 @@
 /Makefile
 /.externalNativeBuild
 /.gradle
+/.idea
 /agram
 /bin
 /build
