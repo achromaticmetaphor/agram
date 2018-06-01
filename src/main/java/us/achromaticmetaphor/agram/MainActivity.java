@@ -4,11 +4,9 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,22 +16,32 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Background;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.OnActivityResult;
+import org.androidannotations.annotations.UiThread;
+import org.androidannotations.annotations.ViewById;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.text.Normalizer;
 
+@EActivity(R.layout.activity_listview)
 public class MainActivity extends AppCompatActivity {
+
+  @ViewById ListView cmdlist;
 
   private static String menuAbout = "About";
   private static final int REQUEST_FILEBROWSER = 1;
@@ -45,51 +53,37 @@ public class MainActivity extends AppCompatActivity {
 
   private Wordlist wordlist;
   private ProgressDialog pdia;
-  private String inprogressFilename;
-  private String inprogressLabel;
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_listview);
+  @AfterViews
+  protected void load() {
     final String[] cmds = new String[] {"Single-word anagrams", "Multi-word anagrams", "Random words", "Contained words"};
-    final ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, cmds);
-    ListView listView = (ListView) findViewById(R.id.cmdlist);
-    listView.setAdapter(adapter);
-    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-      public void onItemClick(AdapterView<?> av, View v, int pos, long id) {
-        Intent intent = new Intent(MainActivity.this, AnagramActivity.class);
-        intent.putExtra("generator", pos == 0 ? new Anagram(wordlist) : pos == 1 ? new Anagrams(wordlist) : pos == 2 ? new WordGenerator(wordlist) : new WordsFrom(wordlist));
-        startActivity(intent);
-      }
-    });
+    final ArrayAdapter adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, cmds);
+    cmdlist.setAdapter(adapter);
+    cmdlist.setOnItemClickListener((AdapterView<?> av, View v, int pos, long id) ->
+      AnagramActivity_.intent(this)
+        .generator(pos == 0 ? new Anagram(wordlist) : pos == 1 ? new Anagrams(wordlist) : pos == 2 ? new WordGenerator(wordlist) : new WordsFrom(wordlist))
+        .start());
     wordlist = new Wordlist();
     SharedPreferences prefs = getSharedPreferences("us.achromaticmetaphor.agram", MODE_PRIVATE);
     String selectedWordlist = prefs.getString(selectedWordlistKey, builtinWordlist);
     if (!getWordlists().contains(selectedWordlist))
       selectedWordlist = builtinWordlist;
-    if (savedInstanceState != null && savedInstanceState.getBoolean("inprogress"))
-      loadWordlist(savedInstanceState.getString("inprogressFilename"), savedInstanceState.getString("inprogressLabel"));
-    else
-      loadWordlist("", selectedWordlist);
+    loadWordlist("", selectedWordlist);
   }
 
-  private void loadWordlist(String filename, final String label) {
-    inprogressFilename = filename;
-    inprogressLabel = label;
+  private void loadWordlist(String filename, String label) {
     pdia = ProgressDialog.show(this, "Loading word list", "Please wait", true, false);
+    readWordlist(filename, label);
+  }
+
+  @Background
+  protected void readWordlist(String filename, final String label) {
     try {
-      wordlist.load(getFilesDir(), filename.equals("") ? getResources().getAssets().open("words") : new FileInputStream(filename), label, new Wordlist.OnCompleteListener() {
-        public void onComplete(boolean success) {
-          if (success)
-            enrollWordlist(label);
-          else
-            wordlistFail(label);
-          if (pdia != null)
-            pdia.dismiss();
-          pdia = null;
-        }
-      });
+      final InputStream words = filename.equals("") ? getResources().getAssets().open("words") : new FileInputStream(filename);
+      if (wordlist.load(getFilesDir(), words, label))
+        enrollWordlist(label);
+      else
+        wordlistFail(label);
     } catch (IOException ioe) {
       wordlistFail(label);
     }
@@ -127,12 +121,23 @@ public class MainActivity extends AppCompatActivity {
       wordlists.add(label);
       setWordlists(wordlists);
     }
+    wordlistSuccess(label);
   }
 
-  private void wordlistFail(String label) {
+  @UiThread
+  protected void wordlistSuccess(String label) {
+    dismissDialog();
+  }
+
+  private void dismissDialog() {
     if (pdia != null)
       pdia.dismiss();
     pdia = null;
+  }
+
+  @UiThread
+  protected void wordlistFail(String label) {
+    dismissDialog();
     AlertDialog.Builder build = new AlertDialog.Builder(this);
     build.setTitle("Error");
     build.setMessage("Failed to load wordlist: " + label);
@@ -165,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
           requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
         else
-          startActivityForResult(new Intent(MainActivity.this, FileBrowser.class), REQUEST_FILEBROWSER);
+          FileBrowser_.intent(MainActivity.this).startForResult(REQUEST_FILEBROWSER);
       }
     });
     build.setNegativeButton("Cancel", null);
@@ -197,17 +202,15 @@ public class MainActivity extends AppCompatActivity {
   public boolean onOptionsItemSelected(MenuItem mi) {
     super.onOptionsItemSelected(mi);
     if (mi.getTitle().equals(menuAbout))
-      startActivity(new Intent(this, About.class));
+      About_.intent(this).start();
     if (mi.getTitle().equals("Select wordlist"))
       chooseWordlist();
     return true;
   }
 
-  @Override
-  protected void onActivityResult(int rcode, int result, Intent data) {
-    if (result == RESULT_OK && rcode == REQUEST_FILEBROWSER) {
-      final String filename = data.getStringExtra("us.achromaticmetaphor.agram.FileBrowser.filename");
-      AlertDialog.Builder build = new AlertDialog.Builder(this);
+  @OnActivityResult(REQUEST_FILEBROWSER)
+  protected void wordlistFileSelected(int result, @OnActivityResult.Extra String filename) {
+    if (result == RESULT_OK) {
       final EditText edit = new EditText(this);
       edit.setText(new File(filename).getName());
       build.setTitle("Enter label for wordlist.");
@@ -226,19 +229,8 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @Override
-  protected void onSaveInstanceState(Bundle state) {
-    if (pdia != null) {
-      state.putBoolean("inprogress", true);
-      state.putString("inprogressFilename", inprogressFilename);
-      state.putString("inprogressLabel", inprogressLabel);
-      pdia.dismiss();
-      pdia = null;
-    }
-  }
-
-  @Override
   public void onRequestPermissionsResult(int request, String[] perms, int[] results) {
     if (request == REQUEST_PERMISSION_READ_EXTERNAL_STORAGE && perms.length == 1 && perms[0].equals(Manifest.permission.READ_EXTERNAL_STORAGE) && results[0] == PackageManager.PERMISSION_GRANTED)
-      startActivityForResult(new Intent(MainActivity.this, FileBrowser.class), REQUEST_FILEBROWSER);
+      FileBrowser_.intent(this).startForResult(REQUEST_FILEBROWSER);
   }
 }

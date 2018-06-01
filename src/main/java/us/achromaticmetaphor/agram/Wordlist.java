@@ -1,13 +1,11 @@
 package us.achromaticmetaphor.agram;
 
-import android.os.AsyncTask;
 import android.util.Base64;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.IOException;
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -19,10 +17,6 @@ public class Wordlist implements Serializable {
 
   static {
     Native.load();
-  }
-
-  public interface OnCompleteListener {
-    public void onComplete(boolean success);
   }
 
   public Wordlist() {
@@ -51,25 +45,11 @@ public class Wordlist implements Serializable {
     return transformLabel(label, currentVersion);
   }
 
-  public void load(File filesDir, InputStream in, String label) {
-    load(filesDir, in, label, null);
-  }
-
-  public void load(final File filesDir, final InputStream in, final String label, final OnCompleteListener listen) {
-    (new AsyncTask<Void, Void, Boolean>() {
-      protected Boolean doInBackground(Void... v) {
-        synchronized (Wordlist.class) {
-          File wlfile = new File(filesDir, transformLabel(label));
-          if (wlfile.exists())
-            return init(wlfile.getAbsolutePath());
-          else
-            return init(wlfile.getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
-        }
-      }
-      protected void onPostExecute(Boolean b) {
-        if (listen != null)
-          listen.onComplete(b);
-      }
-    }).execute();
+  synchronized public boolean load(final File filesDir, final InputStream in, final String label) {
+    File wlfile = new File(filesDir, transformLabel(label));
+    if (wlfile.exists())
+      return init(wlfile.getAbsolutePath());
+    else
+      return init(wlfile.getAbsolutePath(), new WordlistReader(new BufferedReader(new InputStreamReader(in))));
   }
 }
