@@ -1,11 +1,13 @@
 package us.achromaticmetaphor.agram;
 
 import android.os.Build;
+import android.support.annotation.Keep;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.Normalizer;
 
+@Keep
 public class WordlistReader {
 
   private BufferedReader reader;

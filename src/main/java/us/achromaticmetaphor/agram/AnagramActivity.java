@@ -1,6 +1,5 @@
 package us.achromaticmetaphor.agram;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -10,6 +9,7 @@ import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.text.Normalizer;
 
-public class AnagramActivity extends Activity {
+public class AnagramActivity extends AppCompatActivity {
 
   private static final int SCROLL_BY = 128;
 

@@ -1,11 +1,11 @@
 package us.achromaticmetaphor.agram;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class FileBrowser extends Activity {
+public class FileBrowser extends AppCompatActivity {
 
   private List<String> files = new ArrayList<String>(0);
   private File cwd = Environment.getExternalStorageDirectory();

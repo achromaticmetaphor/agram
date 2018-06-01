@@ -1,7 +1,6 @@
 package us.achromaticmetaphor.agram;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -10,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,7 +33,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.text.Normalizer;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
   private static String menuAbout = "About";
   private static final int REQUEST_FILEBROWSER = 1;

@@ -1,11 +1,11 @@
 package us.achromaticmetaphor.agram;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.widget.TextView;
 
-public class AboutText extends Activity {
+public class AboutText extends AppCompatActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
