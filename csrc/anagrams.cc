@@ -9,14 +9,20 @@
 #include "lcwc.h"
 #include "wordlist.h"
 
-static void filter_lc(wordlist const & wl, std::vector<std::reference_wrapper<lc const>> & out, std::vector<std::reference_wrapper<lc const>> const & in, size_t const skip, wc const & target)
+static void
+filter_lc(wordlist const & wl,
+          std::vector<std::reference_wrapper<lc const>> & out,
+          std::vector<std::reference_wrapper<lc const>> const & in,
+          size_t const skip, wc const & target)
 {
   for (auto it = in.begin() + skip; it != in.end(); ++it)
     if (target.contains(wl, *it))
       out.push_back(*it);
 }
 
-static void filter_lc(wordlist const & wl, std::vector<std::reference_wrapper<lc const>> & out, wc const & target)
+static void filter_lc(wordlist const & wl,
+                      std::vector<std::reference_wrapper<lc const>> & out,
+                      wc const & target)
 {
   for (auto & lc : wl.words_counts)
     if (target.contains(wl, lc))
@@ -36,7 +42,8 @@ size_t agsto::single()
       else
         {
           for (unsigned int i = 0; i < state.current().len; ++i)
-            prefix[state.offset + 1 + i] = wl.strbase[state.current().str + i];
+            prefix[state.offset + 1 + i] =
+                wl.strbase[state.current().str + i];
           if (state.target.len == state.current().len)
             return state.offset + state.advance().len;
           else
@@ -51,14 +58,17 @@ size_t agsto::single()
 #endif
               next_level.wcs.clear();
               next_level.wcsi = 0;
-              filter_lc(wl, next_level.wcs, state.wcs, state.wcsi, next_level.target);
+              filter_lc(wl, next_level.wcs, state.wcs, state.wcsi,
+                        next_level.target);
               state.advance();
             }
         }
     }
 }
 
-agsto::agsto(wordlist const & wl, agram_dchar const * const str, size_t const len) : depth(0), wl(wl)
+agsto::agsto(wordlist const & wl, agram_dchar const * const str,
+             size_t const len)
+    : depth(0), wl(wl)
 {
   struct wc target(str, len);
   size_t const prefsize = target.len * 2 + 1;

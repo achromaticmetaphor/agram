@@ -12,7 +12,9 @@
 #include "astr.h"
 #endif
 
-static void lettercounts(std::vector<unsigned int> & counts, std::vector<agram_cpt> & letters, const agram_cpt * const str)
+static void lettercounts(std::vector<unsigned int> & counts,
+                         std::vector<agram_cpt> & letters,
+                         const agram_cpt * const str)
 {
   std::map<agram_cpt, size_t> cmap;
   for (auto s = str; *s; s++)
@@ -25,7 +27,9 @@ static void lettercounts(std::vector<unsigned int> & counts, std::vector<agram_c
     }
 }
 
-void lettercounts(std::vector<unsigned int> & counts, std::vector<agram_cpt> & letters, const agram_dchar * const str, const size_t slen)
+void lettercounts(std::vector<unsigned int> & counts,
+                  std::vector<agram_cpt> & letters,
+                  const agram_dchar * const str, const size_t slen)
 {
 #if AGRAM_ANDROID
   vlasub<agram_cpt> tmp(slen + 1);

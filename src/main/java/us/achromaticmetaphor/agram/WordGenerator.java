@@ -7,9 +7,7 @@ public class WordGenerator implements Generator, Refreshable {
   private final Wordlist wordlist;
   private int wordsRemaining = -1;
 
-  WordGenerator(Wordlist wl) {
-    wordlist = wl;
-  }
+  WordGenerator(Wordlist wl) { wordlist = wl; }
 
   private static int getInt(String s, int def) {
     try {
@@ -37,9 +35,7 @@ public class WordGenerator implements Generator, Refreshable {
     return true;
   }
 
-  public boolean init(String s, boolean lng) {
-    return init(s);
-  }
+  public boolean init(String s, boolean lng) { return init(s); }
 
   public synchronized void uninit() { wordsRemaining = 0; }
 

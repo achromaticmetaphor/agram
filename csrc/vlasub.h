@@ -3,8 +3,7 @@
 
 #include <cstddef>
 
-template <typename T>
-struct vlasub
+template <typename T> struct vlasub
 {
   T * data;
 

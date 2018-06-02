@@ -23,13 +23,13 @@ static std::string find_wordlist(void)
   std::vector<std::string> wordlist_filenames = {"agram/words", "dict/words"};
   for (std::string const & name : wordlist_filenames)
     {
-#define RETURN_IF_READABLE(b, p)                                    \
-  do                                                                \
-    {                                                               \
-      std::string wordlist = std::string(b) + "/" + p + "/" + name; \
-      if (!access(wordlist.c_str(), F_OK))                          \
-        return wordlist;                                            \
-    }                                                               \
+#define RETURN_IF_READABLE(b, p)                                             \
+  do                                                                         \
+    {                                                                        \
+      std::string wordlist = std::string(b) + "/" + p + "/" + name;          \
+      if (!access(wordlist.c_str(), F_OK))                                   \
+        return wordlist;                                                     \
+    }                                                                        \
   while (0)
 
       char const * const xdg_data_home = getenv("XDG_DATA_HOME");
@@ -49,7 +49,8 @@ static std::string find_wordlist(void)
 
       vlasub<char> xdg_data_dirs_m(strlen(xdg_data_dirs) + 1);
       strcpy(xdg_data_dirs_m, xdg_data_dirs);
-      for (char * data_dir = strtok(xdg_data_dirs_m, ":"); data_dir; data_dir = strtok(NULL, ":"))
+      for (char * data_dir = strtok(xdg_data_dirs_m, ":"); data_dir;
+           data_dir = strtok(NULL, ":"))
         RETURN_IF_READABLE(data_dir, "");
     }
 
@@ -79,8 +80,11 @@ int init_wl(wordlist & wl)
   if (wordlist.empty())
     {
       std::cerr << "error: No wordlist was found." << std::endl;
-      std::cerr << "Wordlists are searched for in $XDG_DATA_DIRS/agram/words and $XDG_DATA_DIRS/dict/words." << std::endl;
-      std::cerr << "A wordlist may also be specified in AGRAM_WORDLIST." << std::endl;
+      std::cerr << "Wordlists are searched for in $XDG_DATA_DIRS/agram/words "
+                   "and $XDG_DATA_DIRS/dict/words."
+                << std::endl;
+      std::cerr << "A wordlist may also be specified in AGRAM_WORDLIST."
+                << std::endl;
       return 1;
     }
   return src(wordlist).build_wl(&wl);

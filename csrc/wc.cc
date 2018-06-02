@@ -14,7 +14,8 @@
 
 struct cwlsink
 {
-  virtual int each(lc const *, agram_dchar const *, agram_cpt const *, unsigned int const *) = 0;
+  virtual int each(lc const *, agram_dchar const *, agram_cpt const *,
+                   unsigned int const *) = 0;
   virtual int all() = 0;
 
   int compile(cwlsrc & src);
@@ -59,10 +60,16 @@ struct file_sink : cwlsink
   std::ofstream b;
   agram_size NWORDS;
 
-  int each(lc const *, agram_dchar const *, agram_cpt const *, unsigned int const *);
+  int each(lc const *, agram_dchar const *, agram_cpt const *,
+           unsigned int const *);
   int all();
 
-  file_sink(std::string const & base) : i(base + ".i", std::ios::binary), s(base + ".s", std::ios::binary), c(base + ".c", std::ios::binary), n(base + ".n", std::ios::binary), b(base, std::ios::binary), NWORDS(0) {}
+  file_sink(std::string const & base)
+      : i(base + ".i", std::ios::binary), s(base + ".s", std::ios::binary),
+        c(base + ".c", std::ios::binary), n(base + ".n", std::ios::binary),
+        b(base, std::ios::binary), NWORDS(0)
+  {
+  }
 };
 
 template <typename T>
@@ -86,7 +93,9 @@ static constexpr std::array<T, N> sadcast(std::array<U, N> const & src)
   return std::move(dst);
 }
 
-int file_sink::each(lc const * const index, agram_dchar const * const str, agram_cpt const * const chars, unsigned int const * const counts)
+int file_sink::each(lc const * const index, agram_dchar const * const str,
+                    agram_cpt const * const chars,
+                    unsigned int const * const counts)
 {
   NWORDS++;
   swrite(i, index, 1);
@@ -98,7 +107,8 @@ int file_sink::each(lc const * const index, agram_dchar const * const str, agram
 
 int file_sink::all()
 {
-  std::array<std::ofstream::pos_type, 4> tells = {i.tellp(), s.tellp(), c.tellp(), n.tellp()};
+  std::array<std::ofstream::pos_type, 4> tells = {i.tellp(), s.tellp(),
+                                                  c.tellp(), n.tellp()};
   for (auto t : tells)
     if (t == -1)
       return 1;
@@ -129,11 +139,14 @@ struct mem_sink : cwlsink
   std::vector<agram_cpt> charsbase;
   std::vector<unsigned int> countsbase;
 
-  int each(lc const *, agram_dchar const *, agram_cpt const *, unsigned int const *);
+  int each(lc const *, agram_dchar const *, agram_cpt const *,
+           unsigned int const *);
   int all() { return 0; }
 };
 
-int mem_sink::each(lc const * const index, agram_dchar const * const str, agram_cpt const * const chars, unsigned int const * const counts)
+int mem_sink::each(lc const * const index, agram_dchar const * const str,
+                   agram_cpt const * const chars,
+                   unsigned int const * const counts)
 {
   words_counts.push_back(*index);
   for (unsigned int i = 0; i < index->len; ++i)

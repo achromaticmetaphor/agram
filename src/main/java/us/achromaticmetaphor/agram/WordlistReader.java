@@ -12,9 +12,7 @@ public class WordlistReader {
 
   private BufferedReader reader;
 
-  WordlistReader(BufferedReader br) {
-    reader = br;
-  }
+  WordlistReader(BufferedReader br) { reader = br; }
 
   public String read() {
     try {
@@ -22,7 +20,10 @@ public class WordlistReader {
       do
         s = reader.readLine();
       while (s != null && s.length() == 0);
-      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD && s != null ? Normalizer.normalize(s, Normalizer.Form.NFC) : s;
+      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD &&
+              s != null
+          ? Normalizer.normalize(s, Normalizer.Form.NFC)
+          : s;
     } catch (IOException e) {
       return null;
     }

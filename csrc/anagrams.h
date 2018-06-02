@@ -33,7 +33,8 @@ struct agsto
 };
 
 template <typename CB>
-int anagrams(wordlist const & wl, agram_dchar const * const str, size_t const len, CB & cb)
+int anagrams(wordlist const & wl, agram_dchar const * const str,
+             size_t const len, CB & cb)
 {
   struct agsto ostate(wl, str, len);
   while (size_t slen = ostate.single())

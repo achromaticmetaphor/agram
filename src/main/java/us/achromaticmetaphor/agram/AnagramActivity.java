@@ -31,7 +31,8 @@ import java.util.List;
 import java.text.Normalizer;
 
 @EActivity(R.layout.activity_listview)
-public class AnagramActivity extends AppCompatActivity implements AbsListView.OnScrollListener {
+public class AnagramActivity
+    extends AppCompatActivity implements AbsListView.OnScrollListener {
 
   private static final int SCROLL_BY = 128;
 
@@ -47,7 +48,6 @@ public class AnagramActivity extends AppCompatActivity implements AbsListView.On
   private ProgressDialog pdia = null;
   private boolean filling = true;
 
-
   @AfterViews
   protected void load() {
     if (gen == null)
@@ -58,7 +58,9 @@ public class AnagramActivity extends AppCompatActivity implements AbsListView.On
       shareList = new ArrayList<>();
       promptCharacters();
     } else {
-      ArrayAdapter adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, shareList);
+      ArrayAdapter adapter =
+          new MonoAdapter(AnagramActivity.this,
+                          android.R.layout.simple_list_item_1, shareList);
       cmdlist.setAdapter(adapter);
       cmdlist.setOnScrollListener(this);
     }
@@ -92,9 +94,11 @@ public class AnagramActivity extends AppCompatActivity implements AbsListView.On
 
   public void refresh() {
     filling = true;
-    pdia = ProgressDialog.show(AnagramActivity.this, "Generating", "Please wait", true, false);
+    pdia = ProgressDialog.show(AnagramActivity.this, "Generating",
+                               "Please wait", true, false);
     shareList = new ArrayList<>();
-    adapter = new MonoAdapter(AnagramActivity.this, android.R.layout.simple_list_item_1, shareList);
+    adapter = new MonoAdapter(AnagramActivity.this,
+                              android.R.layout.simple_list_item_1, shareList);
     cmdlist.setAdapter(adapter);
     cmdlist.setOnScrollListener(this);
     initGen();
@@ -124,21 +128,24 @@ public class AnagramActivity extends AppCompatActivity implements AbsListView.On
     final EditText edit = new EditText(this);
     edit.setText(input);
     edit.selectAll();
-    AlertDialog.Builder builder = new AlertDialog.Builder(this)
-      .setView(edit)
-      .setTitle(gen.inputPrompt())
-      .setPositiveButton(gen.shortLabel(), (DialogInterface di, int button) -> {
-        fixin(edit);
-        longMode = false;
-        refresh();
-    })
-      .setNegativeButton("Cancel", null);
+    AlertDialog.Builder builder =
+        new AlertDialog.Builder(this)
+            .setView(edit)
+            .setTitle(gen.inputPrompt())
+            .setPositiveButton(gen.shortLabel(),
+                               (DialogInterface di, int button) -> {
+                                 fixin(edit);
+                                 longMode = false;
+                                 refresh();
+                               })
+            .setNegativeButton("Cancel", null);
     if (gen.hasLongMode())
-      builder.setNeutralButton(gen.longLabel(), (DialogInterface di, int button) -> {
-        fixin(edit);
-        longMode = true;
-        refresh();
-      });
+      builder.setNeutralButton(gen.longLabel(),
+                               (DialogInterface di, int button) -> {
+                                 fixin(edit);
+                                 longMode = true;
+                                 refresh();
+                               });
     builder.show();
   }
 
@@ -189,14 +196,13 @@ public class AnagramActivity extends AppCompatActivity implements AbsListView.On
 
   private static class MonoAdapter extends ArrayAdapter<String> {
 
-    MonoAdapter(Context c, int tid, List<String> lst) {
-      super(c, tid, lst);
-    }
+    MonoAdapter(Context c, int tid, List<String> lst) { super(c, tid, lst); }
 
     @Override
     public View getView(int pos, View cv, ViewGroup p) {
       View v = super.getView(pos, cv, p);
-      ((TextView) v.findViewById(android.R.id.text1)).setTypeface(Typeface.MONOSPACE);
+      ((TextView) v.findViewById(android.R.id.text1))
+          .setTypeface(Typeface.MONOSPACE);
       return v;
     }
   }

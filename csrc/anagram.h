@@ -8,7 +8,8 @@
 #include "wordlist.h"
 
 template <typename CB>
-int anagram(wordlist const & wl, agram_dchar const * const str, size_t const len, CB & cb)
+int anagram(wordlist const & wl, agram_dchar const * const str,
+            size_t const len, CB & cb)
 {
   struct wc target(str, len);
   for (auto lc : wl.words_counts)

@@ -9,13 +9,9 @@ public class WordsFrom implements Generator {
   private boolean finished = true;
   private final Wordlist wordlist;
 
-  WordsFrom(Wordlist wl) {
-    wordlist = wl;
-  }
+  WordsFrom(Wordlist wl) { wordlist = wl; }
 
-  public ArrayList<String> generate(String s) {
-    return generate(s, false);
-  }
+  public ArrayList<String> generate(String s) { return generate(s, false); }
 
   public native ArrayList<String> generate(String s, boolean reuse);
 
@@ -35,7 +31,8 @@ public class WordsFrom implements Generator {
   public synchronized void uninit() { finished = true; }
 
   public synchronized ArrayList<String> generate(int n) {
-    ArrayList<String> results = finished ? new ArrayList<>() : generate(s, lng);
+    ArrayList<String> results =
+        finished ? new ArrayList<>() : generate(s, lng);
     finished = true;
     return results;
   }

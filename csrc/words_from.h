@@ -9,7 +9,8 @@
 #include "wordlist.h"
 
 template <typename CB>
-int words_from(wordlist const & wl, agram_dchar const * const str, size_t const len, int const max, CB & cb)
+int words_from(wordlist const & wl, agram_dchar const * const str,
+               size_t const len, int const max, CB & cb)
 {
   struct wc target(str, len);
   if (max)

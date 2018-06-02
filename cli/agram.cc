@@ -21,7 +21,8 @@ static int prn(const agram_dchar * str, size_t const len)
 
 static int usage(const char * pn)
 {
-  std::cerr << "usage: " << pn << " <single|multi|random|contained> <string>" << std::endl;
+  std::cerr << "usage: " << pn << " <single|multi|random|contained> <string>"
+            << std::endl;
   return 1;
 }
 

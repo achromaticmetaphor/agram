@@ -9,7 +9,8 @@
 #include "wordlist.h"
 
 template <typename T>
-static bool read_file(std::vector<T> & out, std::string const & fn, unsigned long const nelems)
+static bool read_file(std::vector<T> & out, std::string const & fn,
+                      unsigned long const nelems)
 {
   std::ifstream fh(fn, std::ios::binary);
   out.resize(nelems);
@@ -18,7 +19,8 @@ static bool read_file(std::vector<T> & out, std::string const & fn, unsigned lon
 }
 
 template <char E, typename T>
-static bool read_file_ext(std::vector<T> & out, char const * const fn, long const tell)
+static bool read_file_ext(std::vector<T> & out, char const * const fn,
+                          long const tell)
 {
   std::string path = std::string(fn) + '.' + E;
   return read_file(out, path, tell / sizeof(T));

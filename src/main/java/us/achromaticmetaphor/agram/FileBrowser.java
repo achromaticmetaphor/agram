@@ -30,31 +30,36 @@ public class FileBrowser extends AppCompatActivity {
   @AfterViews
   protected void load() {
     files = lsdir(cwd);
-    cmdlist.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, files));
-    cmdlist.setOnItemClickListener((AdapterView<?> av, View v, int pos, long id) -> {
-        String fn = files.get(pos);
-        File file = fn.equals("../") ? cwd.getParentFile() : fn.startsWith("/") ? new File(fn) : new File(cwd, fn);
-        if (file == null)
-          return;
-        if (file.isDirectory()) {
-          files = lsdir(file);
-          cmdlist.setAdapter(new ArrayAdapter<>(FileBrowser.this, android.R.layout.simple_list_item_1, files));
-          cwd = file;
-        } else {
-          final String path = file.getAbsolutePath();
-          new AlertDialog.Builder(FileBrowser.this)
+    cmdlist.setAdapter(
+        new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, files));
+    cmdlist.setOnItemClickListener((AdapterView<?> av, View v, int pos,
+                                    long id) -> {
+      String fn = files.get(pos);
+      File file = fn.equals("../")
+                      ? cwd.getParentFile()
+                      : fn.startsWith("/") ? new File(fn) : new File(cwd, fn);
+      if (file == null)
+        return;
+      if (file.isDirectory()) {
+        files = lsdir(file);
+        cmdlist.setAdapter(new ArrayAdapter<>(
+            FileBrowser.this, android.R.layout.simple_list_item_1, files));
+        cwd = file;
+      } else {
+        final String path = file.getAbsolutePath();
+        new AlertDialog.Builder(FileBrowser.this)
             .setTitle("Confirm selection")
             .setMessage("Select " + path + " as your new wordlist?")
             .setPositiveButton("Yes",
-              (DialogInterface di, int i) -> {
-                Intent result = new Intent();
-                result.putExtra("filename", path);
-                setResult(RESULT_OK, result);
-                finish();
-              })
+                               (DialogInterface di, int i) -> {
+                                 Intent result = new Intent();
+                                 result.putExtra("filename", path);
+                                 setResult(RESULT_OK, result);
+                                 finish();
+                               })
             .setNegativeButton("No", null)
             .show();
-        }
+      }
     });
   }
 

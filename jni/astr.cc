@@ -4,7 +4,8 @@
 
 #include "agram_types.h"
 
-size_t uastrcpy(agram_cpt * dest, const agram_dchar * const src, const size_t slen)
+size_t uastrcpy(agram_cpt * dest, const agram_dchar * const src,
+                const size_t slen)
 {
   jint * const dstart = dest;
   size_t i;

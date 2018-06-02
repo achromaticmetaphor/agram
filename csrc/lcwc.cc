@@ -7,7 +7,8 @@
 #include "lettercounts.h"
 #include "wordlist.h"
 
-unsigned long int wc_hash_chars(agram_cpt const * const chars, unsigned int const nchars)
+unsigned long int wc_hash_chars(agram_cpt const * const chars,
+                                unsigned int const nchars)
 {
   unsigned long int h = 0;
   unsigned int i;
@@ -21,7 +22,8 @@ unsigned long int wc_hash_chars(std::vector<agram_cpt> & chars)
   return wc_hash_chars(chars.data(), chars.size());
 }
 
-void wc::sub_s(const struct wordlist * const wl, const struct wc * const a, const struct lc * const b)
+void wc::sub_s(const struct wordlist * const wl, const struct wc * const a,
+               const struct lc * const b)
 {
   len = a->len - b->len;
   chars.clear();
@@ -31,7 +33,8 @@ void wc::sub_s(const struct wordlist * const wl, const struct wc * const a, cons
   for (unsigned int a_i = 0; a_i < a->chars.size(); a_i++)
     if (b_i < b->nchars && a->chars[a_i] == wl->charsbase[b->chars + b_i])
       {
-        const unsigned int diff = a->counts[a_i] - wl->countsbase[b->chars + b_i];
+        const unsigned int diff =
+            a->counts[a_i] - wl->countsbase[b->chars + b_i];
         if (diff)
           {
             chars.push_back(a->chars[a_i]);

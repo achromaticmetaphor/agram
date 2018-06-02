@@ -13,14 +13,19 @@ import org.androidannotations.annotations.ViewById;
 @EActivity(R.layout.activity_listview)
 public class About extends AppCompatActivity {
 
-  private static final String[] cmds = new String[] {"About app", "About word list", "About icons"};
-  private static final int[] texts = {R.string.about_code, R.string.about_word_list, R.string.about_icons};
+  private static final String[] cmds =
+      new String[] {"About app", "About word list", "About icons"};
+  private static final int[] texts = {
+      R.string.about_code, R.string.about_word_list, R.string.about_icons};
 
   @ViewById ListView cmdlist;
 
   @AfterViews
   protected void load() {
-    cmdlist.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, cmds));
-    cmdlist.setOnItemClickListener((AdapterView<?> av, View v, int pos, long id) -> AboutText_.intent(About.this).about_text(texts[pos]).start());
+    cmdlist.setAdapter(
+        new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, cmds));
+    cmdlist.setOnItemClickListener(
+        (AdapterView<?> av, View v, int pos, long id)
+            -> AboutText_.intent(About.this).about_text(texts[pos]).start());
   }
 }

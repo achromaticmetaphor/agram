@@ -7,9 +7,7 @@ public class Anagrams implements Generator {
   private byte[] handle = null;
   private final Wordlist wordlist;
 
-  Anagrams(Wordlist wl) {
-    wordlist = wl;
-  }
+  Anagrams(Wordlist wl) { wordlist = wl; }
 
   public native ArrayList<String> generate(String s);
 
