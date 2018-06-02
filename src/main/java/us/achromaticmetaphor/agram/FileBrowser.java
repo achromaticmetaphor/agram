@@ -17,13 +17,12 @@ import org.androidannotations.annotations.ViewById;
 import java.io.File;
 import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @EActivity(R.layout.activity_listview)
 public class FileBrowser extends AppCompatActivity {
 
-  private List<String> files = new ArrayList<String>(0);
+  private List<String> files = new ArrayList<>(0);
   private File cwd = Environment.getExternalStorageDirectory();
 
   @ViewById ListView cmdlist;
@@ -32,8 +31,7 @@ public class FileBrowser extends AppCompatActivity {
   protected void load() {
     files = lsdir(cwd);
     cmdlist.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, files));
-    cmdlist.setOnItemClickListener(
-      (AdapterView<?> av, View v, int pos, long id) -> {
+    cmdlist.setOnItemClickListener((AdapterView<?> av, View v, int pos, long id) -> {
         String fn = files.get(pos);
         File file = fn.equals("../") ? cwd.getParentFile() : fn.startsWith("/") ? new File(fn) : new File(cwd, fn);
         if (file == null)
@@ -44,38 +42,31 @@ public class FileBrowser extends AppCompatActivity {
           cwd = file;
         } else {
           final String path = file.getAbsolutePath();
-          AlertDialog.Builder build = new AlertDialog.Builder(FileBrowser.this);
-          build.setTitle("Confirm selection");
-          build.setMessage("Select " + path + " as your new wordlist?");
-          build.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface di, int i) {
-              Intent result = new Intent();
-              result.putExtra("filename", path);
-              setResult(RESULT_OK, result);
-              finish();
-            }
-          });
-          build.setNegativeButton("No", null);
-          build.show();
+          new AlertDialog.Builder(FileBrowser.this)
+            .setTitle("Confirm selection")
+            .setMessage("Select " + path + " as your new wordlist?")
+            .setPositiveButton("Yes",
+              (DialogInterface di, int i) -> {
+                Intent result = new Intent();
+                result.putExtra("filename", path);
+                setResult(RESULT_OK, result);
+                finish();
+              })
+            .setNegativeButton("No", null)
+            .show();
         }
     });
   }
 
   private List<String> lsdir(File dir) {
-    List<String> files = new ArrayList<String>();
+    List<String> files = new ArrayList<>();
     files.add(dir.getAbsolutePath());
     files.add("../");
     File[] ls = dir.listFiles();
-    Arrays.sort(ls, new Comparator<File>() {
-      public int compare(File a, File b) {
-        return a.getName().compareTo(b.getName());
-      }
-    });
-    for (File f : ls) {
-      if (f.canRead())
-        if (!f.isHidden())
-          files.add(f.isDirectory() ? f.getName() + "/" : f.getName());
-    }
+    Arrays.sort(ls, (File a, File b) -> a.getName().compareTo(b.getName()));
+    for (File f : ls)
+      if (f.canRead() && !f.isHidden())
+        files.add(f.isDirectory() ? f.getName() + "/" : f.getName());
     return files;
   }
 }

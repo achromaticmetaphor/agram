@@ -121,30 +121,24 @@ public class AnagramActivity extends AppCompatActivity implements AbsListView.On
   }
 
   public void promptCharacters() {
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
     final EditText edit = new EditText(this);
     edit.setText(input);
     edit.selectAll();
-    builder.setView(edit);
-    builder.setTitle(gen.inputPrompt());
-    builder.setPositiveButton(gen.shortLabel(), new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface di, int button) {
+    AlertDialog.Builder builder = new AlertDialog.Builder(this)
+      .setView(edit)
+      .setTitle(gen.inputPrompt())
+      .setPositiveButton(gen.shortLabel(), (DialogInterface di, int button) -> {
         fixin(edit);
         longMode = false;
         refresh();
-      }
-    });
+    })
+      .setNegativeButton("Cancel", null);
     if (gen.hasLongMode())
-      builder.setNeutralButton(gen.longLabel(), new DialogInterface.OnClickListener() {
-        public void onClick(DialogInterface di, int button) {
-          fixin(edit);
-          longMode = true;
-          refresh();
-        }
+      builder.setNeutralButton(gen.longLabel(), (DialogInterface di, int button) -> {
+        fixin(edit);
+        longMode = true;
+        refresh();
       });
-    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface di, int button) {}
-    });
     builder.show();
   }
 
@@ -195,7 +189,7 @@ public class AnagramActivity extends AppCompatActivity implements AbsListView.On
 
   private static class MonoAdapter extends ArrayAdapter<String> {
 
-    public MonoAdapter(Context c, int tid, List<String> lst) {
+    MonoAdapter(Context c, int tid, List<String> lst) {
       super(c, tid, lst);
     }
 

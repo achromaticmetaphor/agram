@@ -9,7 +9,7 @@ public class WordsFrom implements Generator {
   private boolean finished = true;
   private final Wordlist wordlist;
 
-  public WordsFrom(Wordlist wl) {
+  WordsFrom(Wordlist wl) {
     wordlist = wl;
   }
 
@@ -35,7 +35,7 @@ public class WordsFrom implements Generator {
   public synchronized void uninit() { finished = true; }
 
   public synchronized ArrayList<String> generate(int n) {
-    ArrayList<String> results = finished ? new ArrayList<String>() : generate(s, lng);
+    ArrayList<String> results = finished ? new ArrayList<>() : generate(s, lng);
     finished = true;
     return results;
   }

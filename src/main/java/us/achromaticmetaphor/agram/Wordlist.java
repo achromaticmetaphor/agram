@@ -12,14 +12,14 @@ import java.security.NoSuchAlgorithmException;
 
 public class Wordlist implements Serializable {
 
-  public static byte currentVersion = 3;
+  private static final byte currentVersion = 3;
   private byte[] wordlist_handle = null;
 
   static {
     Native.load();
   }
 
-  public Wordlist() {
+  Wordlist() {
     loadNullWordlist();
   }
 
@@ -41,7 +41,7 @@ public class Wordlist implements Serializable {
     }
   }
 
-  public static String transformLabel(String label) {
+  private static String transformLabel(String label) {
     return transformLabel(label, currentVersion);
   }
 

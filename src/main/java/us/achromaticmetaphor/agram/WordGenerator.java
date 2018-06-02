@@ -7,7 +7,7 @@ public class WordGenerator implements Generator, Refreshable {
   private final Wordlist wordlist;
   private int wordsRemaining = -1;
 
-  public WordGenerator(Wordlist wl) {
+  WordGenerator(Wordlist wl) {
     wordlist = wl;
   }
 

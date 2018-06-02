@@ -7,7 +7,7 @@ public class Anagrams implements Generator {
   private byte[] handle = null;
   private final Wordlist wordlist;
 
-  public Anagrams(Wordlist wl) {
+  Anagrams(Wordlist wl) {
     wordlist = wl;
   }
 

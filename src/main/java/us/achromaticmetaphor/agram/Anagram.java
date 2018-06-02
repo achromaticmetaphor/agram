@@ -33,7 +33,7 @@ public class Anagram implements Generator {
   public synchronized void uninit() { finished = true; }
 
   public synchronized ArrayList<String> generate(int n) {
-    ArrayList<String> results = finished ? new ArrayList<String>() : generate(s);
+    ArrayList<String> results = finished ? new ArrayList<>() : generate(s);
     finished = true;
     return results;
   }

@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private Set<String> getWordlists() {
-    Set<String> wordlists = new HashSet<String>();
+    Set<String> wordlists = new HashSet<>();
     wordlists.add(builtinWordlist);
     try {
       DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(new File(getFilesDir(), wordlistsFilename))));
@@ -138,11 +138,11 @@ public class MainActivity extends AppCompatActivity {
   @UiThread
   protected void wordlistFail(String label) {
     dismissDialog();
-    AlertDialog.Builder build = new AlertDialog.Builder(this);
-    build.setTitle("Error");
-    build.setMessage("Failed to load wordlist: " + label);
-    build.setPositiveButton("OK", null);
-    build.show();
+    new AlertDialog.Builder(this)
+      .setTitle("Error")
+      .setMessage("Failed to load wordlist: " + label)
+      .setPositiveButton("OK", null)
+      .show();
   }
 
   private void chooseWordlist() {
@@ -153,28 +153,18 @@ public class MainActivity extends AppCompatActivity {
     if (selected[0] < 0)
       selected[0] = -1;
 
-    AlertDialog.Builder build = new AlertDialog.Builder(this);
-    build.setTitle("Choose wordlist");
-    build.setSingleChoiceItems(wordlistsArray, selected[0], new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface di, int i) {
-        selected[0] = i;
-      }
-    });
-    build.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface di, int i) {
-        loadWordlist("", (String) wordlistsArray[selected[0]]);
-      }
-    });
-    build.setNeutralButton("Choose file", new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface di, int i) {
+    new AlertDialog.Builder(this)
+      .setTitle("Choose wordlist")
+      .setSingleChoiceItems(wordlistsArray, selected[0], (DialogInterface di, int i) -> selected[0] = i)
+      .setPositiveButton("OK", (DialogInterface di, int i) -> loadWordlist("", (String) wordlistsArray[selected[0]]))
+      .setNeutralButton("Choose file", (DialogInterface di, int i) -> {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
           requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PERMISSION_READ_EXTERNAL_STORAGE);
         else
           FileBrowser_.intent(MainActivity.this).startForResult(REQUEST_FILEBROWSER);
-      }
-    });
-    build.setNegativeButton("Cancel", null);
-    build.show();
+      })
+      .setNegativeButton("Cancel", null)
+      .show();
   }
 
   private MenuItem addMenuItem(Menu menu, String label) {
@@ -213,18 +203,18 @@ public class MainActivity extends AppCompatActivity {
     if (result == RESULT_OK) {
       final EditText edit = new EditText(this);
       edit.setText(new File(filename).getName());
-      build.setTitle("Enter label for wordlist.");
-      build.setView(edit);
-      build.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-        public void onClick(DialogInterface di, int i) {
-          String label = edit.getText().toString();
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD)
-            label = Normalizer.normalize(label, Normalizer.Form.NFC);
-          loadWordlist(filename, label);
-        }
-      });
-      build.setNegativeButton("Cancel", null);
-      build.show();
+      new AlertDialog.Builder(this)
+        .setTitle("Enter label for wordlist.")
+        .setView(edit)
+        .setPositiveButton("OK",
+          (DialogInterface di, int i) -> {
+            String label = edit.getText().toString();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD)
+              label = Normalizer.normalize(label, Normalizer.Form.NFC);
+            loadWordlist(filename, label);
+          })
+        .setNegativeButton("Cancel", null)
+        .show();
     }
   }
 

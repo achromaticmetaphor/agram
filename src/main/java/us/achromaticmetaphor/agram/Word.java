@@ -14,7 +14,7 @@ public class Word {
   }
 
   public static ArrayList<String> pick(Wordlist wl, int n) {
-    ArrayList<String> words = new ArrayList<String>(n);
+    ArrayList<String> words = new ArrayList<>(n);
     try {
       for (int i = 0; i < n; i++)
         words.add(pick(wl));

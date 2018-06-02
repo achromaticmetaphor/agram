@@ -12,7 +12,7 @@ public class WordlistReader {
 
   private BufferedReader reader;
 
-  public WordlistReader(BufferedReader br) {
+  WordlistReader(BufferedReader br) {
     reader = br;
   }
 
