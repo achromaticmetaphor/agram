@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 interface Generator extends Serializable {
-  ArrayList<String> generate(String s);
-  ArrayList<String> generate(String s, boolean lng);
   boolean hasLongMode();
   String longLabel();
   String shortLabel();

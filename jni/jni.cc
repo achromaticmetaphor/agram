@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <cstddef>
+#include <memory>
 
 #include <jni.h>
 
@@ -10,6 +11,8 @@
 #include "wc.h"
 #include "wordlist.h"
 #include "words_from.h"
+
+using marshalled_ptr = jbyteArray;
 
 extern "C" JNIEXPORT jbyteArray JNICALL
 Java_us_achromaticmetaphor_agram_Wordlist_platform(JNIEnv * const env,
@@ -23,168 +26,212 @@ Java_us_achromaticmetaphor_agram_Wordlist_platform(JNIEnv * const env,
   return sizes;
 }
 
-static void * get_marshalled_pointer_or_null(JNIEnv * const env,
-                                             jobject const obj,
-                                             const char * const field)
+template <typename T>
+static T * get_marshalled_pointer(JNIEnv * const env,
+                                  marshalled_ptr const arr)
 {
-  jfieldID const handlefield =
-      env->GetFieldID(env->GetObjectClass(obj), field, "[B");
-  jbyteArray const handle =
-      handlefield ? (jbyteArray) env->GetObjectField(obj, handlefield)
-                  : nullptr;
-  if (!handle ||
-      env->GetArrayLength(handle) != sizeof(void *) / sizeof(jbyte))
+  if (!arr)
     return nullptr;
-  void * pointer;
-  env->GetByteArrayRegion(handle, 0, sizeof(void *) / sizeof(jbyte),
+
+  T * pointer;
+  env->GetByteArrayRegion(arr, 0, sizeof(T *) / sizeof(jbyte),
                           (jbyte *) &pointer);
   return pointer;
 }
 
-static void * get_marshalled_pointer(JNIEnv * const env, jobject const obj,
-                                     const char * const field)
+template <typename T>
+static marshalled_ptr marshalled_pointer(JNIEnv * const env,
+                                         std::unique_ptr<T> && uptr)
 {
-  void * pointer = get_marshalled_pointer_or_null(env, obj, field);
-  if (!pointer)
-    env->ThrowNew(env->FindClass("java/lang/IllegalStateException"),
-                  "null or invalid handle");
-  return pointer;
+  jbyteArray const result = env->NewByteArray(sizeof(void *) / sizeof(jbyte));
+  if (result)
+    {
+      T * ptr = uptr.release();
+      env->SetByteArrayRegion(result, 0, sizeof(T *) / sizeof(jbyte),
+                              reinterpret_cast<jbyte const *>(&ptr));
+    }
+  return result;
 }
 
-static int put_marshalled_pointer(JNIEnv * const env, jobject const obj,
-                                  const char * const field,
-                                  const void * const pointer)
-{
-  jfieldID const handlefield =
-      env->GetFieldID(env->GetObjectClass(obj), field, "[B");
-  jbyteArray const handle =
-      handlefield ? env->NewByteArray(sizeof(void *) / sizeof(jbyte))
-                  : nullptr;
-  if (!handle)
-    return 1;
+template <typename C>
+static C const * borrowChars(JNIEnv *, jstring) = delete;
+template <typename C>
+static void releaseChars(JNIEnv *, jstring, C const *) = delete;
 
-  env->SetByteArrayRegion(handle, 0, sizeof(void *) / sizeof(jbyte),
-                          (jbyte *) &pointer);
-  env->SetObjectField(obj, handlefield, handle);
-  return 0;
+template <>
+char const * borrowChars<char>(JNIEnv * const env, jstring const jstr)
+{
+  return env->GetStringUTFChars(jstr, 0);
 }
 
-static void clear_marshalled_pointer(JNIEnv * const env, jobject const obj,
-                                     const char * const field)
+template <>
+void releaseChars<char>(JNIEnv * const env, jstring const jstr,
+                        char const * str)
 {
-  jfieldID const handlefield =
-      env->GetFieldID(env->GetObjectClass(obj), field, "[B");
-  if (handlefield)
-    env->SetObjectField(obj, handlefield, nullptr);
+  env->ReleaseStringUTFChars(jstr, str);
 }
 
-static const struct wordlist * get_wordlist_handle(JNIEnv * const env,
-                                                   jobject const obj)
+template <>
+jchar const * borrowChars<jchar>(JNIEnv * const env, jstring const jstr)
 {
-  jfieldID const wordlistField =
-      env->GetFieldID(env->GetObjectClass(obj), "wordlist",
-                      "Lus/achromaticmetaphor/agram/Wordlist;");
-  jobject const wordlist =
-      wordlistField ? env->GetObjectField(obj, wordlistField) : nullptr;
-  const struct wordlist * const wlhandle =
-      wordlist ? (struct wordlist *) get_marshalled_pointer_or_null(
-                     env, wordlist, "wordlist_handle")
-               : nullptr;
-  if (!wlhandle)
-    env->ThrowNew(env->FindClass("java/lang/IllegalStateException"),
-                  "null or invalid handle");
-  return wlhandle;
+  return env->GetStringChars(jstr, 0);
 }
 
-static int stradd(JNIEnv * const env, jobject const obj, jmethodID const mid,
-                  jchar const * str, size_t const len)
+template <>
+void releaseChars<jchar>(JNIEnv * const env, jstring const jstr,
+                         jchar const * str)
 {
-  jstring const s = env->NewString(str, len);
-  if (!s)
-    return 1;
-  env->CallBooleanMethod(obj, mid, s);
-  env->DeleteLocalRef(s);
-  return 0;
+  env->ReleaseStringChars(jstr, str);
 }
 
-struct al
+template <typename C> class borrowed_jstring_chars
+{
+  JNIEnv * env;
+  jstring jstr;
+  C const * str;
+
+public:
+  explicit operator bool() const { return str != nullptr; }
+  operator C const *() const { return str; }
+
+  jsize size() const { return env->GetStringLength(jstr); }
+
+  borrowed_jstring_chars<C> &
+  operator=(borrowed_jstring_chars<C> const &) = delete;
+
+  borrowed_jstring_chars<C> & operator=(borrowed_jstring_chars<C> && k)
+  {
+    env = k.env;
+    jstr = k.jstr;
+    str = k.str;
+    k.str = nullptr;
+    return *this;
+  }
+
+  borrowed_jstring_chars() : env(nullptr), jstr(nullptr), str(nullptr) {}
+  borrowed_jstring_chars(borrowed_jstring_chars<C> const &) = delete;
+
+  borrowed_jstring_chars(borrowed_jstring_chars<C> && k)
+      : env(k.env), jstr(k.jstr), str(k.str)
+  {
+    k.str = nullptr;
+  }
+
+  borrowed_jstring_chars(JNIEnv * const env, jstring const jstr)
+      : env(env), jstr(jstr), str(borrowChars<C>(env, jstr))
+  {
+  }
+
+  ~borrowed_jstring_chars()
+  {
+    if (str)
+      releaseChars<C>(env, jstr, str);
+  }
+};
+
+template <typename T> class local_ref
+{
+  JNIEnv * env;
+  T ref;
+
+public:
+  explicit operator bool() const { return ref != nullptr; }
+  operator T() const { return ref; }
+
+  local_ref() : env(nullptr), ref(nullptr) {}
+  local_ref(JNIEnv * const env, T const ref) : env(env), ref(ref) {}
+
+  local_ref<T> & operator=(local_ref<T> && r)
+  {
+    env = r.env;
+    ref = r.ref;
+    r.ref = nullptr;
+    return *this;
+  }
+
+  ~local_ref()
+  {
+    if (ref)
+      env->DeleteLocalRef(ref);
+  }
+};
+
+class al
 {
   JNIEnv * env;
   jmethodID aladd;
   jobject alinstance;
 
+public:
   int add(jchar const * const str, size_t const len)
   {
-    return stradd(env, alinstance, aladd, str, len);
+    local_ref<jstring> s(env, env->NewString(str, len));
+    if (!s)
+      return 1;
+    env->CallBooleanMethod(alinstance, aladd, jstring(s));
+    return 0;
   }
 
   int operator()(jchar const * const str, size_t const len)
   {
     return add(str, len);
   }
+
+  explicit operator bool() const { return !!aladd; }
+  operator jobject() const { return alinstance; }
+
+  al(JNIEnv * const env, jobject const instance)
+      : env(env), alinstance(instance),
+        aladd(env->GetMethodID(env->GetObjectClass(instance), "add",
+                               "(Ljava/lang/Object;)Z"))
+  {
+  }
 };
 
-static int alinit(struct al * const al, JNIEnv * const env)
+template <typename C>
+static jobject generate(JNIEnv * const env, jstring const string,
+                        marshalled_ptr const handle, jobject const alist,
+                        C gen)
 {
-  al->env = env;
-  jclass arraylist = env->FindClass("java/util/ArrayList");
-  jmethodID alcon =
-      arraylist ? env->GetMethodID(arraylist, "<init>", "()V") : nullptr;
-  al->aladd =
-      alcon ? env->GetMethodID(arraylist, "add", "(Ljava/lang/Object;)Z")
-            : nullptr;
-  al->alinstance = al->aladd ? env->NewObject(arraylist, alcon) : nullptr;
-  return !al->alinstance;
+  wordlist const * const wl =
+      get_marshalled_pointer<wordlist const>(env, handle);
+  al al(env, alist);
+  if (!wl || !al)
+    return nullptr;
+
+  borrowed_jstring_chars<jchar> str(env, string);
+  if (str)
+    gen(*wl, str, str.size(), al);
+  return al;
 }
 
 extern "C" JNIEXPORT jobject JNICALL
 Java_us_achromaticmetaphor_agram_Anagram_generate(JNIEnv * const env,
-                                                  const jobject obj,
-                                                  const jstring string)
+                                                  jclass const cls,
+                                                  const jstring string,
+                                                  marshalled_ptr const handle,
+                                                  jobject const alist)
 {
-  const struct wordlist * const wl = get_wordlist_handle(env, obj);
-  if (!wl)
-    return nullptr;
-  al al;
-  jchar const * const str =
-      alinit(&al, env) ? nullptr : env->GetStringChars(string, nullptr);
-  if (str)
-    {
-      anagram(*wl, str, env->GetStringLength(string), al);
-      env->ReleaseStringChars(string, str);
-    }
-  return al.alinstance;
+  return generate(env, string, handle, alist, anagram<al>);
 }
 
 extern "C" JNIEXPORT jobject JNICALL
-Java_us_achromaticmetaphor_agram_WordsFrom_generate(JNIEnv * const env,
-                                                    const jobject obj,
-                                                    const jstring string,
-                                                    const jboolean max)
+Java_us_achromaticmetaphor_agram_WordsFrom_generate(
+    JNIEnv * const env, jclass const cls, jstring const string,
+    marshalled_ptr const handle, jboolean const max, jobject const alist)
 {
-  const struct wordlist * const wl = get_wordlist_handle(env, obj);
-  if (!wl)
-    return nullptr;
-  struct al al;
-  jchar const * const str =
-      alinit(&al, env) ? nullptr : env->GetStringChars(string, nullptr);
-  if (str)
-    {
-      words_from(*wl, str, env->GetStringLength(string), max, al);
-      env->ReleaseStringChars(string, str);
-    }
-  return al.alinstance;
+  return generate(env, string, handle, alist,
+                  [max](wordlist const & a, jchar const * b, jsize c,
+                        al & d) { return words_from(a, b, c, max, d); });
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_us_achromaticmetaphor_agram_Word_pick_1native(JNIEnv * const env,
-                                                   const jclass cl,
-                                                   jobject const wordlist,
-                                                   const jint n)
+Java_us_achromaticmetaphor_agram_Word_pick(JNIEnv * const env,
+                                           const jclass cl,
+                                           marshalled_ptr const handle,
+                                           const jint n)
 {
-  const struct wordlist * const wl =
-      (struct wordlist *) get_marshalled_pointer(env, wordlist,
-                                                 "wordlist_handle");
+  wordlist const * wl = get_marshalled_pointer<wordlist const>(env, handle);
   if (!wl)
     return nullptr;
   return env->NewString(wl->words_counts[n].str + wl->strbase.data(),
@@ -192,42 +239,24 @@ Java_us_achromaticmetaphor_agram_Word_pick_1native(JNIEnv * const env,
 }
 
 extern "C" JNIEXPORT jint JNICALL
-Java_us_achromaticmetaphor_agram_Wordlist_get_1nwords(JNIEnv * const env,
-                                                      const jobject obj)
+Java_us_achromaticmetaphor_agram_Wordlist_get_1nwords(
+    JNIEnv * const env, jclass const cls, marshalled_ptr const handle)
 {
-  const struct wordlist * const wl =
-      (struct wordlist *) get_marshalled_pointer(env, obj, "wordlist_handle");
+  wordlist const * wl = get_marshalled_pointer<wordlist const>(env, handle);
   if (!wl)
     return 0;
   return wl->words_counts.size();
 }
 
-extern "C" JNIEXPORT jobject JNICALL
-Java_us_achromaticmetaphor_agram_Anagrams_generate__Ljava_lang_String_2(
-    JNIEnv * const env, const jobject obj, const jstring string)
-{
-  const struct wordlist * const wl = get_wordlist_handle(env, obj);
-  if (!wl)
-    return nullptr;
-  struct al al;
-  jchar const * const str =
-      alinit(&al, env) ? nullptr : env->GetStringChars(string, nullptr);
-  if (str)
-    {
-      anagrams(*wl, str, env->GetStringLength(string), al);
-      env->ReleaseStringChars(string, str);
-    }
-  return al.alinstance;
-}
-
-struct wr : cwlsrc
+class wr : public cwlsrc
 {
   JNIEnv * env;
   jmethodID wrread;
   jobject wrinstance;
-  jstring wrcur;
-  jchar const * curchars;
+  local_ref<jstring> wrcur;
+  borrowed_jstring_chars<jchar> curchars;
 
+public:
   int has_next();
   size_t len();
   agram_dchar const * get();
@@ -236,23 +265,21 @@ struct wr : cwlsrc
 
 int wr::has_next()
 {
-  if (curchars)
-    env->ReleaseStringChars(wrcur, curchars);
-  if (wrcur)
-    env->DeleteLocalRef(wrcur);
-  return !!(wrcur = reinterpret_cast<jstring>(
-                env->CallObjectMethod(wrinstance, wrread)));
+  curchars = {};
+  return !!(wrcur = local_ref<jstring>(
+                env, reinterpret_cast<jstring>(
+                         env->CallObjectMethod(wrinstance, wrread))));
 }
 
 size_t wr::len() { return env->GetStringLength(wrcur); }
 
 agram_dchar const * wr::get()
 {
-  return curchars = env->GetStringChars(wrcur, nullptr);
+  return curchars = borrowed_jstring_chars<jchar>(env, wrcur);
 }
 
 wr::wr(JNIEnv * const env, jobject const jwords)
-    : env(env), wrinstance(jwords), wrcur(nullptr), curchars(nullptr)
+    : env(env), wrinstance(jwords), wrcur(), curchars()
 {
   auto const wlreader =
       env->FindClass("us/achromaticmetaphor/agram/WordlistReader");
@@ -261,93 +288,71 @@ wr::wr(JNIEnv * const env, jobject const jwords)
                : nullptr;
 }
 
-extern "C" JNIEXPORT void JNICALL
+extern "C" JNIEXPORT marshalled_ptr JNICALL
 Java_us_achromaticmetaphor_agram_Wordlist_loadNullWordlist(JNIEnv * const env,
                                                            jobject const obj)
 {
-  static const struct wordlist nullwl;
-  put_marshalled_pointer(env, obj, "wordlist_handle", &nullwl);
+  return marshalled_pointer(env, std::make_unique<wordlist>());
 }
 
-extern "C" JNIEXPORT jboolean JNICALL
+static marshalled_ptr load_wl(JNIEnv * const env, const char * const fn)
+{
+  auto wl = std::make_unique<wordlist>();
+  if (load_wl(wl.get(), fn))
+    return nullptr;
+  else
+    return marshalled_pointer(env, std::move(wl));
+}
+
+extern "C" JNIEXPORT marshalled_ptr JNICALL
 Java_us_achromaticmetaphor_agram_Wordlist_init__Ljava_lang_String_2Lus_achromaticmetaphor_agram_WordlistReader_2(
-    JNIEnv * const env, jobject const obj, jstring const jfn,
+    JNIEnv * const env, jclass const cls, jstring const jfn,
     jobject const jwords)
 {
-  struct wr wr(env, jwords);
-  const char * const fn =
-      wr.wrread ? env->GetStringUTFChars(jfn, 0) : nullptr;
-  const int compile_failed = fn ? wr.compile_wl(fn) : 1;
-  auto const wl = compile_failed ? nullptr : new wordlist;
-  const int load_failed = wl ? load_wl(wl, fn) : 1;
-  if (fn)
-    env->ReleaseStringUTFChars(jfn, fn);
-  return load_failed ||
-                 put_marshalled_pointer(env, obj, "wordlist_handle", wl)
-             ? JNI_FALSE
-             : JNI_TRUE;
+  wr reader(env, jwords);
+  borrowed_jstring_chars<char> fn(env, jfn);
+  bool const compile_failed = !fn || reader.compile_wl(fn);
+  return compile_failed ? nullptr : load_wl(env, fn);
 }
 
-extern "C" JNIEXPORT jboolean JNICALL
+extern "C" JNIEXPORT marshalled_ptr JNICALL
 Java_us_achromaticmetaphor_agram_Wordlist_init__Ljava_lang_String_2(
-    JNIEnv * const env, jobject const obj, jstring const jfn)
+    JNIEnv * const env, jclass const cls, jstring const jfn)
 {
-  const char * const fn = env->GetStringUTFChars(jfn, 0);
-  struct wordlist * const wl = fn ? new wordlist : nullptr;
-  const int failure = wl ? load_wl(wl, fn) : 1;
-  if (fn)
-    env->ReleaseStringUTFChars(jfn, fn);
-  return failure || put_marshalled_pointer(env, obj, "wordlist_handle", wl)
-             ? JNI_FALSE
-             : JNI_TRUE;
+  borrowed_jstring_chars<char> fn(env, jfn);
+  return fn ? load_wl(env, fn) : nullptr;
 }
 
 extern "C" JNIEXPORT void JNICALL
 Java_us_achromaticmetaphor_agram_Anagrams_uninit(JNIEnv * const env,
-                                                 jobject const obj)
+                                                 jclass const cls,
+                                                 marshalled_ptr const handle)
 {
-  auto state = (agsto *) get_marshalled_pointer_or_null(env, obj, "handle");
-  clear_marshalled_pointer(env, obj, "handle");
-  delete state;
+  delete get_marshalled_pointer<agsto>(env, handle);
 }
 
-extern "C" JNIEXPORT jboolean JNICALL
-Java_us_achromaticmetaphor_agram_Anagrams_init__Ljava_lang_String_2(
-    JNIEnv * const env, jobject const obj, jstring const jstr)
+extern "C" JNIEXPORT marshalled_ptr JNICALL
+Java_us_achromaticmetaphor_agram_Anagrams_initState(
+    JNIEnv * const env, jclass const cls, jstring const jstr,
+    marshalled_ptr const handle)
 {
-  Java_us_achromaticmetaphor_agram_Anagrams_uninit(env, obj);
-  const struct wordlist * const wl = get_wordlist_handle(env, obj);
-  if (!wl)
-    return JNI_FALSE;
+  wordlist const * wl = get_marshalled_pointer<wordlist const>(env, handle);
+  borrowed_jstring_chars<jchar> str(env, jstr);
+  if (!wl || !str)
+    return nullptr;
 
-  jchar const * const str = env->GetStringChars(jstr, nullptr);
-  auto state =
-      str ? new agsto(*wl, str, env->GetStringLength(jstr)) : nullptr;
-  if (str)
-    env->ReleaseStringChars(jstr, str);
-  else
-    return JNI_FALSE;
-
-  if (put_marshalled_pointer(env, obj, "handle", state))
-    {
-      delete state;
-      return JNI_FALSE;
-    }
-  else
-    return JNI_TRUE;
+  return marshalled_pointer(env,
+                            std::make_unique<agsto>(*wl, str, str.size()));
 }
 
 extern "C" JNIEXPORT jobject JNICALL
-Java_us_achromaticmetaphor_agram_Anagrams_generate__I(JNIEnv * const env,
-                                                      jobject const obj,
-                                                      jint const n)
+Java_us_achromaticmetaphor_agram_Anagrams_generate(
+    JNIEnv * const env, jclass const cls, jint const n, jobject const alist,
+    marshalled_ptr const handle)
 {
-  struct al al;
-  if (alinit(&al, env))
-    return nullptr;
-
-  auto state = (agsto *) get_marshalled_pointer(env, obj, "handle");
-  if (!state)
+  al al(env, alist);
+  agsto * const state = get_marshalled_pointer<agsto>(env, handle);
+  if (!al || !state)
     return nullptr;
 
   jint i;
@@ -359,5 +364,5 @@ Java_us_achromaticmetaphor_agram_Anagrams_generate__I(JNIEnv * const env,
       if (al.add(state->prefix.data() + 1, slen))
         break;
     }
-  return al.alinstance;
+  return al;
 }

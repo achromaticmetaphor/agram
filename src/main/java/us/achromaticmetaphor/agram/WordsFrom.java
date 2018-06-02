@@ -11,9 +11,13 @@ public class WordsFrom implements Generator {
 
   WordsFrom(Wordlist wl) { wordlist = wl; }
 
-  public ArrayList<String> generate(String s) { return generate(s, false); }
+  private static native ArrayList<String>
+  generate(String s, byte[] handle, boolean reuse, ArrayList<String> alist);
 
-  public native ArrayList<String> generate(String s, boolean reuse);
+  public ArrayList<String> generate(String s, boolean reuse,
+                                    ArrayList<String> alist) {
+    return generate(s, wordlist.wordlist_handle, reuse, alist);
+  }
 
   public boolean hasLongMode() { return true; }
   public String longLabel() { return "Reuse characters"; }
@@ -32,7 +36,7 @@ public class WordsFrom implements Generator {
 
   public synchronized ArrayList<String> generate(int n) {
     ArrayList<String> results =
-        finished ? new ArrayList<>() : generate(s, lng);
+        finished ? new ArrayList<>() : generate(s, lng, new ArrayList<>(n));
     finished = true;
     return results;
   }

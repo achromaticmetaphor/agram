@@ -10,10 +10,11 @@ public class Anagram implements Generator {
 
   public Anagram(Wordlist wl) { wordlist = wl; }
 
-  public native ArrayList<String> generate(String s);
+  private static native ArrayList<String> generate(String s, byte[] handle,
+                                                   ArrayList<String> alist);
 
-  public ArrayList<String> generate(String s, boolean b) {
-    return generate(s);
+  public ArrayList<String> generate(String s, ArrayList<String> alist) {
+    return generate(s, wordlist.wordlist_handle, alist);
   }
 
   public boolean hasLongMode() { return false; }
@@ -31,7 +32,8 @@ public class Anagram implements Generator {
   public synchronized void uninit() { finished = true; }
 
   public synchronized ArrayList<String> generate(int n) {
-    ArrayList<String> results = finished ? new ArrayList<>() : generate(s);
+    ArrayList<String> results =
+        finished ? new ArrayList<>() : generate(s, new ArrayList<>(n));
     finished = true;
     return results;
   }

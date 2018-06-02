@@ -12,18 +12,18 @@ import java.security.NoSuchAlgorithmException;
 
 public class Wordlist implements Serializable {
 
-  private static final byte currentVersion = 3;
-  private byte[] wordlist_handle = null;
-
   static { Native.load(); }
 
-  Wordlist() { loadNullWordlist(); }
+  private static final byte currentVersion = 3;
+  byte[] wordlist_handle = loadNullWordlist();
 
   private static native byte[] platform();
-  private native boolean init(String s, WordlistReader wl);
-  private native boolean init(String s);
-  public native int get_nwords();
-  public native void loadNullWordlist();
+  private static native byte[] init(String s, WordlistReader wl);
+  private static native byte[] init(String s);
+  private static native int get_nwords(byte[] handle);
+  public native byte[] loadNullWordlist();
+
+  public int get_nwords() { return get_nwords(wordlist_handle); }
 
   public static String transformLabel(String label, byte version) {
     try {
@@ -45,11 +45,11 @@ public class Wordlist implements Serializable {
   synchronized public boolean load(final File filesDir, final InputStream in,
                                    final String label) {
     File wlfile = new File(filesDir, transformLabel(label));
-    if (wlfile.exists())
-      return init(wlfile.getAbsolutePath());
-    else
-      return init(
-          wlfile.getAbsolutePath(),
-          new WordlistReader(new BufferedReader(new InputStreamReader(in))));
+    wordlist_handle = wlfile.exists()
+                          ? init(wlfile.getAbsolutePath())
+                          : init(wlfile.getAbsolutePath(),
+                                 new WordlistReader(new BufferedReader(
+                                     new InputStreamReader(in))));
+    return wordlist_handle != null;
   }
 }

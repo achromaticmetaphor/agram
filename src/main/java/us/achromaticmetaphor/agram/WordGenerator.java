@@ -17,14 +17,6 @@ public class WordGenerator implements Generator, Refreshable {
     }
   }
 
-  public ArrayList<String> generate(String s) {
-    return Word.pick(wordlist, getInt(s, 1));
-  }
-
-  public ArrayList<String> generate(String s, boolean b) {
-    return generate(s);
-  }
-
   public boolean hasLongMode() { return false; }
   public String longLabel() { return ""; }
   public String shortLabel() { return "Generate"; }

@@ -7,10 +7,10 @@ public class Word {
 
   private static final Random random = new Random();
 
-  private static native String pick_native(Wordlist wl, int n);
+  private static native String pick(byte[] handle, int n);
 
   public static String pick(Wordlist wl) {
-    return pick_native(wl, random.nextInt(wl.get_nwords()));
+    return pick(wl.wordlist_handle, random.nextInt(wl.get_nwords()));
   }
 
   public static ArrayList<String> pick(Wordlist wl, int n) {
