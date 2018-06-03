@@ -11,7 +11,7 @@ buildscript {
 apply plugin: 'com.android.application'
 
 android {
-  compileSdkVersion 25
+  compileSdkVersion 27
 
   lintOptions {
     abortOnError false
@@ -44,7 +44,7 @@ android {
 
   dependencies {
     annotationProcessor 'org.androidannotations:androidannotations:4.4.0'
-    implementation 'com.android.support:appcompat-v7:25.4.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'org.androidannotations:androidannotations-api:4.4.0'
   }
 }

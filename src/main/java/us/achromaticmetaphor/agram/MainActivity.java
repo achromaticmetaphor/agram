@@ -203,17 +203,14 @@ public class MainActivity extends AppCompatActivity {
         .show();
   }
 
-  private MenuItem addMenuItem(Menu menu, String label) {
+  private static MenuItem addMenuItem(Menu menu, String label) {
     MenuItem mi = menu.add(label);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-      mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+    mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
     return mi;
   }
 
-  private MenuItem addMenuItem(Menu menu, String label, int icon) {
-    MenuItem mi = addMenuItem(menu, label);
-    mi.setIcon(icon);
-    return mi;
+  private static void addMenuItem(Menu menu, String label, int icon) {
+    addMenuItem(menu, label).setIcon(icon);
   }
 
   @Override
@@ -245,12 +242,10 @@ public class MainActivity extends AppCompatActivity {
           .setView(edit)
           .setPositiveButton(
               "OK",
-              (DialogInterface di, int i) -> {
-                String label = edit.getText().toString();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD)
-                  label = Normalizer.normalize(label, Normalizer.Form.NFC);
-                loadWordlist(filename, label);
-              })
+              (DialogInterface di, int i)
+                  -> loadWordlist(filename, Normalizer.normalize(
+                                                edit.getText().toString(),
+                                                Normalizer.Form.NFC)))
           .setNegativeButton("Cancel", null)
           .show();
     }

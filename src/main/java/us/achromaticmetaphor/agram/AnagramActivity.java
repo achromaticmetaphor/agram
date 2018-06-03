@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
@@ -119,9 +118,8 @@ public class AnagramActivity
   }
 
   private void fixin(EditText et) {
-    input = et.getText().toString();
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD)
-      input = Normalizer.normalize(input, Normalizer.Form.NFC);
+    input =
+        Normalizer.normalize(et.getText().toString(), Normalizer.Form.NFC);
   }
 
   public void promptCharacters() {
@@ -151,15 +149,12 @@ public class AnagramActivity
 
   private static MenuItem addMenuItem(Menu menu, String title) {
     MenuItem mi = menu.add(title);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-      mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+    mi.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
     return mi;
   }
 
-  private static MenuItem addMenuItem(Menu menu, String title, int ic) {
-    MenuItem mi = addMenuItem(menu, title);
-    mi.setIcon(ic);
-    return mi;
+  private static void addMenuItem(Menu menu, String title, int ic) {
+    addMenuItem(menu, title).setIcon(ic);
   }
 
   @Override

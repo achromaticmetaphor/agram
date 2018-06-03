@@ -1,6 +1,5 @@
 package us.achromaticmetaphor.agram;
 
-import android.os.Build;
 import android.support.annotation.Keep;
 
 import java.io.BufferedReader;
@@ -20,10 +19,7 @@ public class WordlistReader {
       do
         s = reader.readLine();
       while (s != null && s.length() == 0);
-      return Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD &&
-              s != null
-          ? Normalizer.normalize(s, Normalizer.Form.NFC)
-          : s;
+      return s != null ? Normalizer.normalize(s, Normalizer.Form.NFC) : null;
     } catch (IOException e) {
       return null;
     }
