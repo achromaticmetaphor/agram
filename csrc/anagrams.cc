@@ -4,27 +4,28 @@
 
 #include "agram_types.h"
 #include "anagrams.h"
-#include "lcwc.h"
 #include "wordlist.h"
+#include "wordlist_entry.h"
 
-static void
-filter_lc(wordlist const & wl,
-          std::vector<std::reference_wrapper<lc const>> & out,
-          std::vector<std::reference_wrapper<lc const>> const & in,
-          size_t const skip, wc const & target)
+static void filter_entries(
+    wordlist const & wl,
+    std::vector<std::reference_wrapper<wordlist_entry const>> & out,
+    std::vector<std::reference_wrapper<wordlist_entry const>> const & in,
+    size_t const skip, anagram_target const & target)
 {
   for (auto it = in.begin() + skip; it != in.end(); ++it)
     if (target.contains(wl, *it))
       out.push_back(*it);
 }
 
-static void filter_lc(wordlist const & wl,
-                      std::vector<std::reference_wrapper<lc const>> & out,
-                      wc const & target)
+static void filter_entries(
+    wordlist const & wl,
+    std::vector<std::reference_wrapper<wordlist_entry const>> & out,
+    anagram_target const & target)
 {
-  for (auto & lc : wl.words_counts)
-    if (target.contains(wl, lc))
-      out.push_back(lc);
+  for (auto & entry : wl.words_counts)
+    if (target.contains(wl, entry))
+      out.push_back(entry);
 }
 
 size_t agsto::single()
@@ -47,7 +48,7 @@ size_t agsto::single()
           else
             {
               auto & next_level = states[++depth];
-              next_level.target.sub_s(&wl, &state.target, &state.current());
+              next_level.target.sub_s(&wl, &state.target, state.current());
               next_level.offset = state.offset + state.current().len + 1;
 #if AGRAM_ANDROID
               prefix[next_level.offset] = 32;
@@ -56,8 +57,8 @@ size_t agsto::single()
 #endif
               next_level.wcs.clear();
               next_level.wcsi = 0;
-              filter_lc(wl, next_level.wcs, state.wcs, state.wcsi,
-                        next_level.target);
+              filter_entries(wl, next_level.wcs, state.wcs, state.wcsi,
+                             next_level.target);
               state.advance();
             }
         }
@@ -68,12 +69,12 @@ agsto::agsto(wordlist const & wl, agram_dchar const * const str,
              size_t const len)
     : depth(0), wl(wl)
 {
-  struct wc target(str, len);
+  anagram_target target(str, len);
   size_t const prefsize = target.len * 2 + 1;
   states.resize(prefsize);
   prefix.resize(prefsize);
   states[0].target = target;
   states[0].offset = 0;
   states[0].wcsi = 0;
-  filter_lc(wl, states[0].wcs, target);
+  filter_entries(wl, states[0].wcs, target);
 }

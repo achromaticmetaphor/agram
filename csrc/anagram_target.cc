@@ -1,38 +1,25 @@
 #include <vector>
 
 #include "agram_types.h"
-#include "lcwc.h"
+#include "anagram_target.h"
 #include "lettercounts.h"
 #include "wordlist.h"
+#include "wordlist_entry.h"
 
-unsigned long int wc_hash_chars(agram_cpt const * const chars,
-                                unsigned int const nchars)
+void anagram_target::sub_s(const struct wordlist * const wl,
+                           const anagram_target * const a,
+                           const wordlist_entry & b)
 {
-  unsigned long int h = 0;
-  unsigned int i;
-  for (i = 0; i < nchars; i++)
-    h |= 1 << (chars[i] % 32);
-  return h;
-}
-
-unsigned long int wc_hash_chars(std::vector<agram_cpt> & chars)
-{
-  return wc_hash_chars(chars.data(), chars.size());
-}
-
-void wc::sub_s(const struct wordlist * const wl, const struct wc * const a,
-               const struct lc * const b)
-{
-  len = a->len - b->len;
+  len = a->len - b.len;
   chars.clear();
   counts.clear();
 
   unsigned int b_i = 0;
   for (unsigned int a_i = 0; a_i < a->chars.size(); a_i++)
-    if (b_i < b->nchars && a->chars[a_i] == wl->charsbase[b->chars + b_i])
+    if (b_i < b.nchars && a->chars[a_i] == wl->charsbase[b.chars + b_i])
       {
         const unsigned int diff =
-            a->counts[a_i] - wl->countsbase[b->chars + b_i];
+            a->counts[a_i] - wl->countsbase[b.chars + b_i];
         if (diff)
           {
             chars.push_back(a->chars[a_i]);
@@ -48,7 +35,9 @@ void wc::sub_s(const struct wordlist * const wl, const struct wc * const a,
   hash_chars();
 }
 
-wc::wc(const agram_dchar * const sstr, const size_t slen) : len(slen), hash(0)
+anagram_target::anagram_target(const agram_dchar * const sstr,
+                               const size_t slen)
+    : len(slen), hash(0)
 {
   for (size_t i = 0; i < slen; ++i)
     str.push_back(sstr[i]);
@@ -56,7 +45,8 @@ wc::wc(const agram_dchar * const sstr, const size_t slen) : len(slen), hash(0)
   hash_chars();
 }
 
-bool wc::is_anagram(wordlist const & wl, lc const & b) const
+bool anagram_target::is_anagram(wordlist const & wl,
+                                wordlist_entry const & b) const
 {
   if (len != b.len)
     return false;
@@ -72,7 +62,8 @@ bool wc::is_anagram(wordlist const & wl, lc const & b) const
   return true;
 }
 
-bool wc::contains(wordlist const & wl, lc const & a) const
+bool anagram_target::contains(wordlist const & wl,
+                              wordlist_entry const & a) const
 {
   if ((a.hash & hash) != a.hash)
     return false;

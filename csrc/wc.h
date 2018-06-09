@@ -4,7 +4,6 @@
 #include <cstddef>
 
 #include "agram_types.h"
-#include "lcwc.h"
 #include "wordlist.h"
 
 struct cwlsrc

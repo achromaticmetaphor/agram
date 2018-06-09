@@ -6,14 +6,14 @@
 
 #include "agram_types.h"
 #include "agram_wc.h"
-#include "lcwc.h"
+#include "anagram_target.h"
 #include "lettercounts.h"
 #include "wc.h"
 
 struct cwlsink
 {
-  virtual int each(lc const *, agram_dchar const *, agram_cpt const *,
-                   unsigned int const *) = 0;
+  virtual int each(wordlist_entry const *, agram_dchar const *,
+                   agram_cpt const *, unsigned int const *) = 0;
   virtual int all() = 0;
 
   int compile(cwlsrc & src);
@@ -28,7 +28,7 @@ int cwlsink::compile(cwlsrc & src)
   std::vector<agram_cpt> chars;
   while (src.has_next())
     {
-      struct lc index;
+      wordlist_entry index;
       NWORDS++;
       index.len = src.len();
       agram_dchar const * const str = src.get();
@@ -58,7 +58,7 @@ struct file_sink : cwlsink
   std::ofstream b;
   agram_size NWORDS;
 
-  int each(lc const *, agram_dchar const *, agram_cpt const *,
+  int each(wordlist_entry const *, agram_dchar const *, agram_cpt const *,
            unsigned int const *);
   int all();
 
@@ -91,7 +91,8 @@ static constexpr std::array<T, N> sadcast(std::array<U, N> const & src)
   return std::move(dst);
 }
 
-int file_sink::each(lc const * const index, agram_dchar const * const str,
+int file_sink::each(wordlist_entry const * const index,
+                    agram_dchar const * const str,
                     agram_cpt const * const chars,
                     unsigned int const * const counts)
 {
@@ -132,17 +133,18 @@ int cwlsrc::compile_wl(const char * outfn)
 
 struct mem_sink : cwlsink
 {
-  std::vector<lc> words_counts;
+  std::vector<wordlist_entry> words_counts;
   std::vector<agram_dchar> strbase;
   std::vector<agram_cpt> charsbase;
   std::vector<unsigned int> countsbase;
 
-  int each(lc const *, agram_dchar const *, agram_cpt const *,
+  int each(wordlist_entry const *, agram_dchar const *, agram_cpt const *,
            unsigned int const *);
   int all() { return 0; }
 };
 
-int mem_sink::each(lc const * const index, agram_dchar const * const str,
+int mem_sink::each(wordlist_entry const * const index,
+                   agram_dchar const * const str,
                    agram_cpt const * const chars,
                    unsigned int const * const counts)
 {

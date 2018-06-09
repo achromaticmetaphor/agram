@@ -6,18 +6,18 @@
 #include <vector>
 
 #include "agram_types.h"
-#include "lcwc.h"
+#include "anagram_target.h"
 #include "wordlist.h"
 
 struct agst
 {
-  wc target;
+  anagram_target target;
   size_t offset;
-  std::vector<std::reference_wrapper<lc const>> wcs;
+  std::vector<std::reference_wrapper<wordlist_entry const>> wcs;
   size_t wcsi;
 
-  lc const & current() const { return wcs[wcsi]; }
-  lc const & advance() { return wcs[wcsi++]; }
+  wordlist_entry const & current() const { return wcs[wcsi]; }
+  wordlist_entry const & advance() { return wcs[wcsi++]; }
   bool exhausted() const { return wcsi >= wcs.size(); }
 };
 
