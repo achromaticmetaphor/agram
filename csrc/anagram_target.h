@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "agram_types.h"
+#include "string_view.h"
 #include "wordlist.h"
 #include "wordlist_entry.h"
 
@@ -28,7 +29,7 @@ struct anagram_target
 
   void sub_s(wordlist const *, anagram_target const *,
              wordlist_entry const &);
-  anagram_target(agram_display_char const *, size_t);
+  anagram_target(string_view<agram_display_char>);
   bool is_anagram(wordlist const &, wordlist_entry const &) const;
   bool contains(wordlist const &, wordlist_entry const &) const;
 

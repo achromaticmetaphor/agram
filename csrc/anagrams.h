@@ -7,6 +7,8 @@
 
 #include "agram_types.h"
 #include "anagram_target.h"
+#include "optional.h"
+#include "string_view.h"
 #include "wordlist.h"
 
 struct agst
@@ -28,17 +30,17 @@ struct agsto
   std::vector<agram_display_char> prefix;
   wordlist const & wl;
 
-  agsto(wordlist const &, agram_display_char const *, size_t);
-  size_t single();
+  agsto(wordlist const &, string_view<agram_display_char>);
+  optional<string_view<agram_display_char>> single();
 };
 
 template <typename CB>
-int anagrams(wordlist const & wl, agram_display_char const * const str,
-             size_t const len, CB & cb)
+int anagrams(wordlist const & wl, string_view<agram_display_char> sv, CB & cb)
+
 {
-  agsto ostate(wl, str, len);
-  while (size_t slen = ostate.single())
-    if (cb(ostate.prefix.data() + 1, slen))
+  agsto ostate(wl, sv);
+  while (auto next = ostate.single())
+    if (cb(*next))
       return 2;
   return 0;
 }

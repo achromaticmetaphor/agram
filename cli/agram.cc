@@ -5,15 +5,14 @@
 
 #include "anagram.h"
 #include "anagrams.h"
+#include "string_view.h"
 #include "wordlist.h"
 #include "words_from.h"
 #include "xdgwl.h"
 
-static int prn(const agram_display_char * str, size_t const len)
+static int print(string_view<char> sv)
 {
-  for (size_t i = 0; i < len; ++i)
-    std::cout << str[i];
-  std::cout << std::endl;
+  std::cout << sv << std::endl;
   return 0;
 }
 
@@ -27,14 +26,14 @@ static int usage(const char * pn)
 static int single(wordlist const & wl, int argc, char * argv[])
 {
   if (argc == 3)
-    return anagram(wl, argv[2], strlen(argv[2]), prn);
+    return anagram(wl, argv[2], print);
   return usage(argv[0]);
 }
 
 static int multi(wordlist const & wl, int argc, char * argv[])
 {
   if (argc == 3)
-    return anagrams(wl, argv[2], strlen(argv[2]), prn);
+    return anagrams(wl, argv[2], print);
   return usage(argv[0]);
 }
 
@@ -43,11 +42,11 @@ static int shuffled(wordlist const & wl, int argc, char * argv[])
   const long int count = argc >= 3 ? atol(argv[2]) : 1;
   std::random_device rd;
   std::default_random_engine dre(rd());
-  std::uniform_int_distribution<agram_size> dist(0, wl.words_counts.size());
+  std::uniform_int_distribution<agram_size> dist(0, wl.size());
   for (long int i = 0; i < count; ++i)
     {
       agram_size const n = dist(dre);
-      prn(wl.words_counts[n].str + wl.strbase.data(), wl.words_counts[n].len);
+      print(wl.display_string(n));
     }
   return 0;
 }
@@ -55,7 +54,7 @@ static int shuffled(wordlist const & wl, int argc, char * argv[])
 static int contained(wordlist const & wl, int argc, char * argv[])
 {
   if (argc >= 3)
-    return words_from(wl, argv[2], strlen(argv[2]), argc >= 4, prn);
+    return words_from(wl, argv[2], argc >= 4, print);
   return usage(argv[0]);
 }
 

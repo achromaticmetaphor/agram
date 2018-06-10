@@ -4,6 +4,8 @@
 
 #include "agram_types.h"
 #include "anagrams.h"
+#include "optional.h"
+#include "string_view.h"
 #include "wordlist.h"
 #include "wordlist_entry.h"
 
@@ -28,14 +30,14 @@ static void filter_entries(
       out.push_back(entry);
 }
 
-size_t agsto::single()
+optional<string_view<agram_display_char>> agsto::single()
 {
   while (true)
     {
       auto & state = states[depth];
       if (state.exhausted())
         if (depth == 0)
-          return 0;
+          return {};
         else
           --depth;
       else
@@ -44,7 +46,7 @@ size_t agsto::single()
             prefix[state.offset + 1 + i] =
                 wl.strbase[state.current().str + i];
           if (state.target.len == state.current().len)
-            return state.offset + state.advance().len;
+            return {prefix.data() + 1, state.offset + state.advance().len};
           else
             {
               auto & next_level = states[++depth];
@@ -65,11 +67,10 @@ size_t agsto::single()
     }
 }
 
-agsto::agsto(wordlist const & wl, agram_display_char const * const str,
-             size_t const len)
+agsto::agsto(wordlist const & wl, string_view<agram_display_char> sv)
     : depth(0), wl(wl)
 {
-  anagram_target target(str, len);
+  anagram_target target(sv);
   size_t const prefsize = target.len * 2 + 1;
   states.resize(prefsize);
   prefix.resize(prefsize);

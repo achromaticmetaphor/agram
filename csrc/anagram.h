@@ -5,16 +5,16 @@
 
 #include "agram_types.h"
 #include "anagram_target.h"
+#include "string_view.h"
 #include "wordlist.h"
 
 template <typename CB>
-int anagram(wordlist const & wl, agram_display_char const * const str,
-            size_t const len, CB & cb)
+int anagram(wordlist const & wl, string_view<agram_display_char> sv, CB & cb)
 {
-  anagram_target target(str, len);
+  anagram_target target(sv);
   for (auto & entry : wl.words_counts)
     if (target.is_anagram(wl, entry))
-      if (cb(entry.str + wl.strbase.data(), entry.len))
+      if (cb(wl.display_string(entry)))
         return 2;
   return 0;
 }

@@ -6,6 +6,7 @@
 #include "agram_wc.h"
 #include "anagram.h"
 #include "anagrams.h"
+#include "string_view.h"
 #include "wordlist.h"
 #include "wordlist_source.h"
 #include "words_from.h"
@@ -91,6 +92,10 @@ template <typename C> class borrowed_jstring_chars
 public:
   explicit operator bool() const { return str != nullptr; }
   operator C const *() const { return str; }
+  operator string_view<C>() const
+  {
+    return {str, static_cast<std::size_t>(size())};
+  }
 
   jsize size() const { return env->GetStringLength(jstr); }
 
@@ -127,6 +132,11 @@ public:
   }
 };
 
+jstring new_jstring(JNIEnv * const env, string_view<jchar> sv)
+{
+  return env->NewString(sv.data, static_cast<jsize>(sv.len));
+}
+
 template <typename T> class local_ref
 {
   JNIEnv * env;
@@ -161,19 +171,16 @@ class al
   jobject alinstance;
 
 public:
-  int add(jchar const * const str, size_t const len)
+  int add(string_view<jchar> sv)
   {
-    local_ref<jstring> s(env, env->NewString(str, len));
+    local_ref<jstring> s(env, new_jstring(env, sv));
     if (!s)
       return 1;
     env->CallBooleanMethod(alinstance, aladd, jstring(s));
     return 0;
   }
 
-  int operator()(jchar const * const str, size_t const len)
-  {
-    return add(str, len);
-  }
+  int operator()(string_view<jchar> sv) { return add(sv); }
 
   explicit operator bool() const { return !!aladd; }
   operator jobject() const { return alinstance; }
@@ -199,7 +206,7 @@ static jobject generate(JNIEnv * const env, jstring const string,
 
   borrowed_jstring_chars<jchar> str(env, string);
   if (str)
-    gen(*wl, str, str.size(), al);
+    gen(*wl, str, al);
   return al;
 }
 
@@ -219,8 +226,9 @@ Java_us_achromaticmetaphor_agram_WordsFrom_generate(
     marshalled_ptr const handle, jboolean const max, jobject const alist)
 {
   return generate(env, string, handle, alist,
-                  [max](wordlist const & a, jchar const * b, jsize c,
-                        al & d) { return words_from(a, b, c, max, d); });
+                  [max](wordlist const & a, string_view<jchar> b, al & d) {
+                    return words_from(a, b, max, d);
+                  });
 }
 
 extern "C" JNIEXPORT jstring JNICALL
@@ -230,10 +238,7 @@ Java_us_achromaticmetaphor_agram_Word_pick(JNIEnv * const env,
                                            const jint n)
 {
   wordlist const * wl = get_marshalled_pointer<wordlist const>(env, handle);
-  if (!wl)
-    return nullptr;
-  return env->NewString(wl->words_counts[n].str + wl->strbase.data(),
-                        wl->words_counts[n].len);
+  return wl ? new_jstring(env, wl->display_string(n)) : nullptr;
 }
 
 extern "C" JNIEXPORT jint JNICALL
@@ -339,8 +344,7 @@ Java_us_achromaticmetaphor_agram_Anagrams_initState(
   if (!wl || !str)
     return nullptr;
 
-  return marshalled_pointer(env,
-                            std::make_unique<agsto>(*wl, str, str.size()));
+  return marshalled_pointer(env, std::make_unique<agsto>(*wl, str));
 }
 
 extern "C" JNIEXPORT jobject JNICALL
@@ -356,10 +360,10 @@ Java_us_achromaticmetaphor_agram_Anagrams_generate(
   jint i;
   for (i = 0; i < n; i++)
     {
-      size_t const slen = state->single();
-      if (!slen)
+      auto const next = state->single();
+      if (!next)
         break;
-      if (al.add(state->prefix.data() + 1, slen))
+      if (al.add(*next))
         break;
     }
   return al;

@@ -9,16 +9,16 @@
 #include "wordlist.h"
 
 template <typename CB>
-int words_from(wordlist const & wl, agram_display_char const * const str,
-               size_t const len, int const max, CB & cb)
+int words_from(wordlist const & wl, string_view<agram_display_char> sv,
+               int const max, CB & cb)
 {
-  anagram_target target(str, len);
+  anagram_target target(sv);
   if (max)
     for (auto & c : target.counts)
       c = std::numeric_limits<unsigned int>::max();
   for (auto & entry : wl.words_counts)
     if (target.contains(wl, entry))
-      if (cb(entry.str + wl.strbase.data(), entry.len))
+      if (cb(wl.display_string(entry)))
         return 2;
   return 0;
 }

@@ -35,13 +35,12 @@ void anagram_target::sub_s(const wordlist * const wl,
   hash_chars();
 }
 
-anagram_target::anagram_target(const agram_display_char * const sstr,
-                               const size_t slen)
-    : len(slen), hash(0)
+anagram_target::anagram_target(string_view<agram_display_char> sv)
+    : len(sv.len), hash(0)
 {
-  for (size_t i = 0; i < slen; ++i)
-    str.push_back(sstr[i]);
-  lettercounts(counts, chars, sstr, slen);
+  for (size_t i = 0; i < sv.len; ++i)
+    str.push_back(sv.data[i]);
+  lettercounts(counts, chars, sv.data, sv.len);
   hash_chars();
 }
 
