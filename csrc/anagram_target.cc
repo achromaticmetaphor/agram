@@ -6,7 +6,7 @@
 #include "wordlist.h"
 #include "wordlist_entry.h"
 
-void anagram_target::sub_s(const struct wordlist * const wl,
+void anagram_target::sub_s(const wordlist * const wl,
                            const anagram_target * const a,
                            const wordlist_entry & b)
 {

@@ -3,6 +3,6 @@
 
 #include "wordlist.h"
 
-int load_wl(struct wordlist *, const char *);
+int load_wl(wordlist *, const char *);
 
 #endif

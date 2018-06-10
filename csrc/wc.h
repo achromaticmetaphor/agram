@@ -14,7 +14,7 @@ struct cwlsrc
   virtual agram_display_char const * get() = 0;
 
   int compile_wl(const char *);
-  int build_wl(struct wordlist *);
+  int build_wl(wordlist *);
 };
 
 #endif

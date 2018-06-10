@@ -23,7 +23,7 @@ static bool read_file_ext(std::vector<T> & out, char const * const fn,
   return read_file(out, path, tell / sizeof(T));
 }
 
-int load_wl(struct wordlist * const wl, const char * const fn)
+int load_wl(wordlist * const wl, const char * const fn)
 {
   long tells[4];
   agram_size nwords;

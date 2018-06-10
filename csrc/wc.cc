@@ -158,7 +158,7 @@ int mem_sink::each(wordlist_entry const * const index,
   return 0;
 }
 
-int cwlsrc::build_wl(struct wordlist * const wl)
+int cwlsrc::build_wl(wordlist * const wl)
 {
   mem_sink sink;
   if (sink.compile(*this))
