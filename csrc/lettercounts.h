@@ -5,7 +5,7 @@
 
 #include "agram_types.h"
 
-void lettercounts(std::vector<unsigned int> &, std::vector<agram_cpt> &,
-                  const agram_dchar *, size_t);
+void lettercounts(std::vector<unsigned int> &, std::vector<agram_codepoint> &,
+                  const agram_display_char *, size_t);
 
 #endif

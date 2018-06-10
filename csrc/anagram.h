@@ -8,7 +8,7 @@
 #include "wordlist.h"
 
 template <typename CB>
-int anagram(wordlist const & wl, agram_dchar const * const str,
+int anagram(wordlist const & wl, agram_display_char const * const str,
             size_t const len, CB & cb)
 {
   anagram_target target(str, len);

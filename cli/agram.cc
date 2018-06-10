@@ -9,7 +9,7 @@
 #include "words_from.h"
 #include "xdgwl.h"
 
-static int prn(const agram_dchar * str, size_t const len)
+static int prn(const agram_display_char * str, size_t const len)
 {
   for (size_t i = 0; i < len; ++i)
     std::cout << str[i];

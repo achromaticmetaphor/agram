@@ -9,8 +9,8 @@
 struct wordlist
 {
   std::vector<wordlist_entry> words_counts;
-  std::vector<agram_dchar> strbase;
-  std::vector<agram_cpt> charsbase;
+  std::vector<agram_display_char> strbase;
+  std::vector<agram_codepoint> charsbase;
   std::vector<unsigned int> countsbase;
 };
 

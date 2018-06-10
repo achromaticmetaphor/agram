@@ -25,15 +25,15 @@ struct agsto
 {
   std::vector<agst> states;
   size_t depth;
-  std::vector<agram_dchar> prefix;
+  std::vector<agram_display_char> prefix;
   wordlist const & wl;
 
-  agsto(wordlist const &, agram_dchar const *, size_t);
+  agsto(wordlist const &, agram_display_char const *, size_t);
   size_t single();
 };
 
 template <typename CB>
-int anagrams(wordlist const & wl, agram_dchar const * const str,
+int anagrams(wordlist const & wl, agram_display_char const * const str,
              size_t const len, CB & cb)
 {
   struct agsto ostate(wl, str, len);

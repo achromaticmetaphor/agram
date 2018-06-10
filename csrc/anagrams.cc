@@ -65,7 +65,7 @@ size_t agsto::single()
     }
 }
 
-agsto::agsto(wordlist const & wl, agram_dchar const * const str,
+agsto::agsto(wordlist const & wl, agram_display_char const * const str,
              size_t const len)
     : depth(0), wl(wl)
 {

@@ -35,7 +35,7 @@ void anagram_target::sub_s(const struct wordlist * const wl,
   hash_chars();
 }
 
-anagram_target::anagram_target(const agram_dchar * const sstr,
+anagram_target::anagram_target(const agram_display_char * const sstr,
                                const size_t slen)
     : len(slen), hash(0)
 {

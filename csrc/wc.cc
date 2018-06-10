@@ -12,8 +12,8 @@
 
 struct cwlsink
 {
-  virtual int each(wordlist_entry const *, agram_dchar const *,
-                   agram_cpt const *, unsigned int const *) = 0;
+  virtual int each(wordlist_entry const *, agram_display_char const *,
+                   agram_codepoint const *, unsigned int const *) = 0;
   virtual int all() = 0;
 
   int compile(cwlsrc & src);
@@ -25,13 +25,13 @@ int cwlsink::compile(cwlsrc & src)
   size_t stroff = 0;
   size_t charsoff = 0;
   std::vector<unsigned int> counts;
-  std::vector<agram_cpt> chars;
+  std::vector<agram_codepoint> chars;
   while (src.has_next())
     {
       wordlist_entry index;
       NWORDS++;
       index.len = src.len();
-      agram_dchar const * const str = src.get();
+      agram_display_char const * const str = src.get();
       counts.clear();
       chars.clear();
       lettercounts(counts, chars, str, index.len);
@@ -58,8 +58,8 @@ struct file_sink : cwlsink
   std::ofstream b;
   agram_size NWORDS;
 
-  int each(wordlist_entry const *, agram_dchar const *, agram_cpt const *,
-           unsigned int const *);
+  int each(wordlist_entry const *, agram_display_char const *,
+           agram_codepoint const *, unsigned int const *);
   int all();
 
   file_sink(std::string const & base)
@@ -92,8 +92,8 @@ static constexpr std::array<T, N> sadcast(std::array<U, N> const & src)
 }
 
 int file_sink::each(wordlist_entry const * const index,
-                    agram_dchar const * const str,
-                    agram_cpt const * const chars,
+                    agram_display_char const * const str,
+                    agram_codepoint const * const chars,
                     unsigned int const * const counts)
 {
   NWORDS++;
@@ -134,18 +134,18 @@ int cwlsrc::compile_wl(const char * outfn)
 struct mem_sink : cwlsink
 {
   std::vector<wordlist_entry> words_counts;
-  std::vector<agram_dchar> strbase;
-  std::vector<agram_cpt> charsbase;
+  std::vector<agram_display_char> strbase;
+  std::vector<agram_codepoint> charsbase;
   std::vector<unsigned int> countsbase;
 
-  int each(wordlist_entry const *, agram_dchar const *, agram_cpt const *,
-           unsigned int const *);
+  int each(wordlist_entry const *, agram_display_char const *,
+           agram_codepoint const *, unsigned int const *);
   int all() { return 0; }
 };
 
 int mem_sink::each(wordlist_entry const * const index,
-                   agram_dchar const * const str,
-                   agram_cpt const * const chars,
+                   agram_display_char const * const str,
+                   agram_codepoint const * const chars,
                    unsigned int const * const counts)
 {
   words_counts.push_back(*index);

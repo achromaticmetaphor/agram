@@ -3,13 +3,13 @@
 
 #if AGRAM_ANDROID
 #include <jni.h>
-typedef jint agram_cpt;
-typedef jchar agram_dchar;
+typedef jint agram_codepoint;
+typedef jchar agram_display_char;
 typedef jint agram_size;
 #else
 #include <cstddef>
-typedef wchar_t agram_cpt;
-typedef char agram_dchar;
+typedef wchar_t agram_codepoint;
+typedef char agram_display_char;
 typedef size_t agram_size;
 #endif
 

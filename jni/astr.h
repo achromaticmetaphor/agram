@@ -5,6 +5,6 @@
 
 #include "agram_types.h"
 
-size_t uastrcpy(agram_cpt *, const agram_dchar *, size_t);
+size_t uastrcpy(agram_codepoint *, const agram_display_char *, size_t);
 
 #endif

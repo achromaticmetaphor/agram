@@ -2,7 +2,7 @@
 
 #include "agram_types.h"
 
-size_t uastrcpy(agram_cpt * dest, const agram_dchar * const src,
+size_t uastrcpy(agram_codepoint * dest, const agram_display_char * const src,
                 const size_t slen)
 {
   jint * const dstart = dest;

@@ -10,10 +10,10 @@
 #endif
 
 static void lettercounts(std::vector<unsigned int> & counts,
-                         std::vector<agram_cpt> & letters,
-                         const agram_cpt * const str)
+                         std::vector<agram_codepoint> & letters,
+                         const agram_codepoint * const str)
 {
-  std::map<agram_cpt, size_t> cmap;
+  std::map<agram_codepoint, size_t> cmap;
   for (auto s = str; *s; s++)
     cmap[*s]++;
 
@@ -25,16 +25,16 @@ static void lettercounts(std::vector<unsigned int> & counts,
 }
 
 void lettercounts(std::vector<unsigned int> & counts,
-                  std::vector<agram_cpt> & letters,
-                  const agram_dchar * const str, const size_t slen)
+                  std::vector<agram_codepoint> & letters,
+                  const agram_display_char * const str, const size_t slen)
 {
 #if AGRAM_ANDROID
-  std::vector<agram_cpt> tmp(slen + 1);
+  std::vector<agram_codepoint> tmp(slen + 1);
   uastrcpy(tmp.data(), str, slen);
   lettercounts(counts, letters, tmp.data());
 #else
   const size_t wlen = mbstowcs(nullptr, str, 0);
-  std::vector<agram_cpt> tmp(wlen + 1);
+  std::vector<agram_codepoint> tmp(wlen + 1);
   mbstowcs(tmp.data(), str, wlen + 1);
   lettercounts(counts, letters, tmp.data());
 #endif

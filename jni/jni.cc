@@ -257,7 +257,7 @@ class wr : public cwlsrc
 public:
   int has_next();
   size_t len();
-  agram_dchar const * get();
+  agram_display_char const * get();
   wr(JNIEnv *, jobject);
 };
 
@@ -271,7 +271,7 @@ int wr::has_next()
 
 size_t wr::len() { return env->GetStringLength(wrcur); }
 
-agram_dchar const * wr::get()
+agram_display_char const * wr::get()
 {
   return curchars = borrowed_jstring_chars<jchar>(env, wrcur);
 }

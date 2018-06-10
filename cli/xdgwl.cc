@@ -66,7 +66,7 @@ struct src : cwlsrc
   }
 
   size_t len() { return next.size(); }
-  agram_dchar const * get() { return next.data(); }
+  agram_display_char const * get() { return next.data(); }
 
   src(std::string & fn) : wordlist(fn) {}
 };

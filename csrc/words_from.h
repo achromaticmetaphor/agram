@@ -9,7 +9,7 @@
 #include "wordlist.h"
 
 template <typename CB>
-int words_from(wordlist const & wl, agram_dchar const * const str,
+int words_from(wordlist const & wl, agram_display_char const * const str,
                size_t const len, int const max, CB & cb)
 {
   anagram_target target(str, len);
