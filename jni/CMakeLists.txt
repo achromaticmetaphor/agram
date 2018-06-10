@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.1)
 add_library(anagram SHARED
   astr
   jni
-  ../csrc/agram_wc
   ../csrc/anagrams
   ../csrc/anagram_target
   ../csrc/lettercounts

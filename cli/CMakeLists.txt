@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.1)
 add_executable(agram
   agram
   xdgwl
-  ../csrc/agram_wc
   ../csrc/anagrams
   ../csrc/anagram_target
   ../csrc/lettercounts

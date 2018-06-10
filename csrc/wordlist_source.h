@@ -17,4 +17,6 @@ struct wordlist_source
   int build_wl(wordlist *);
 };
 
+int load_wl(wordlist *, const char *);
+
 #endif

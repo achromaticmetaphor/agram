@@ -3,7 +3,6 @@
 
 #include <jni.h>
 
-#include "agram_wc.h"
 #include "anagram.h"
 #include "anagrams.h"
 #include "string_view.h"
