@@ -1,5 +1,7 @@
+#include <algorithm>
 #include <cstddef>
 #include <functional>
+#include <iterator>
 #include <vector>
 
 #include "agram_types.h"
@@ -9,25 +11,29 @@
 #include "wordlist.h"
 #include "wordlist_entry.h"
 
-static void filter_entries(
-    wordlist const & wl,
-    std::vector<std::reference_wrapper<wordlist_entry const>> & out,
-    std::vector<std::reference_wrapper<wordlist_entry const>> const & in,
-    size_t const skip, anagram_target const & target)
+template <typename O, typename IB, typename IE>
+static void filter_entries(wordlist const & wl, O & out, IB begin, IE end,
+                           anagram_target const & target)
 {
-  for (auto it = in.begin() + skip; it != in.end(); ++it)
-    if (target.contains(wl, *it))
-      out.push_back(*it);
+  std::copy_if(begin, end, std::back_inserter(out),
+               [&target, &wl](auto const & entry) {
+                 return target.contains(wl, entry);
+               });
 }
 
-static void filter_entries(
-    wordlist const & wl,
-    std::vector<std::reference_wrapper<wordlist_entry const>> & out,
-    anagram_target const & target)
+template <typename V>
+static void filter_entries(wordlist const & wl, V & out, V const & in,
+                           size_t const skip, anagram_target const & target)
 {
-  for (auto & entry : wl.words_counts)
-    if (target.contains(wl, entry))
-      out.push_back(entry);
+  filter_entries(wl, out, in.cbegin() + skip, in.cend(), target);
+}
+
+template <typename V>
+static void filter_entries(wordlist const & wl, V & out,
+                           anagram_target const & target)
+{
+  filter_entries(wl, out, wl.words_counts.cbegin(), wl.words_counts.cend(),
+                 target);
 }
 
 optional<string_view<agram_display_char>> agsto::single()

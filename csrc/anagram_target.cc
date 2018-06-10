@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <vector>
 
 #include "agram_types.h"
@@ -47,18 +48,11 @@ anagram_target::anagram_target(string_view<agram_display_char> sv)
 bool anagram_target::is_anagram(wordlist const & wl,
                                 wordlist_entry const & b) const
 {
-  if (len != b.len)
-    return false;
-  if (chars.size() != b.nchars)
-    return false;
-  for (unsigned int i = 0; i < b.nchars; ++i)
-    {
-      if (chars[i] != wl.charsbase[b.chars + i])
-        return false;
-      if (counts[i] != wl.countsbase[b.chars + i])
-        return false;
-    }
-  return true;
+  return len == b.len && chars.size() == b.nchars &&
+         std::equal(chars.cbegin(), chars.cend(),
+                    wl.charsbase.cbegin() + b.chars) &&
+         std::equal(counts.cbegin(), counts.cend(),
+                    wl.countsbase.cbegin() + b.chars);
 }
 
 bool anagram_target::contains(wordlist const & wl,
@@ -66,23 +60,15 @@ bool anagram_target::contains(wordlist const & wl,
 {
   if ((a.hash & hash) != a.hash)
     return false;
-  unsigned int i = 0, j = 0;
-  while (i < a.nchars)
+
+  std::size_t j = 0;
+  for (std::size_t i = 0; i < a.nchars; ++i)
     {
-      if (j >= chars.size())
-        return false;
-
-      if (wl.charsbase[a.chars + i] < chars[j])
-        return false;
-
-      else if (wl.charsbase[a.chars + i] == chars[j])
-        if (wl.countsbase[a.chars + i] > counts[j])
-          return false;
-        else
-          ++i;
-
-      else if (wl.charsbase[a.chars + i] > chars[j])
+      while (j < chars.size() && chars[j] < wl.charsbase[a.chars + i])
         ++j;
+      if (j >= chars.size() || chars[j] != wl.charsbase[a.chars + i] ||
+          counts[j] < wl.countsbase[a.chars + i])
+        return false;
     }
 
   return true;
