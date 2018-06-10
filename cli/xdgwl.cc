@@ -8,8 +8,8 @@
 
 #include <unistd.h>
 
-#include "wc.h"
 #include "wordlist.h"
+#include "wordlist_source.h"
 
 static std::string find_wordlist(void)
 {
@@ -54,7 +54,7 @@ static std::string find_wordlist(void)
   return "";
 }
 
-struct src : cwlsrc
+struct src : wordlist_source
 {
   std::ifstream wordlist;
   std::string next;

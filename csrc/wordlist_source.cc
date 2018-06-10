@@ -8,18 +8,18 @@
 #include "agram_wc.h"
 #include "anagram_target.h"
 #include "lettercounts.h"
-#include "wc.h"
+#include "wordlist_source.h"
 
-struct cwlsink
+struct wordlist_sink
 {
   virtual int each(wordlist_entry const *, agram_display_char const *,
                    agram_codepoint const *, unsigned int const *) = 0;
   virtual int all() = 0;
 
-  int compile(cwlsrc & src);
+  int compile(wordlist_source & src);
 };
 
-int cwlsink::compile(cwlsrc & src)
+int wordlist_sink::compile(wordlist_source & src)
 {
   agram_size NWORDS = 0;
   size_t stroff = 0;
@@ -49,7 +49,7 @@ int cwlsink::compile(cwlsrc & src)
   return all();
 }
 
-struct file_sink : cwlsink
+struct file_sink : wordlist_sink
 {
   std::ofstream i;
   std::ofstream s;
@@ -126,12 +126,12 @@ int file_sink::all()
   return 0;
 }
 
-int cwlsrc::compile_wl(const char * outfn)
+int wordlist_source::compile_wl(const char * outfn)
 {
   return file_sink(outfn).compile(*this);
 }
 
-struct mem_sink : cwlsink
+struct mem_sink : wordlist_sink
 {
   std::vector<wordlist_entry> words_counts;
   std::vector<agram_display_char> strbase;
@@ -158,7 +158,7 @@ int mem_sink::each(wordlist_entry const * const index,
   return 0;
 }
 
-int cwlsrc::build_wl(wordlist * const wl)
+int wordlist_source::build_wl(wordlist * const wl)
 {
   mem_sink sink;
   if (sink.compile(*this))

@@ -6,8 +6,8 @@
 #include "agram_wc.h"
 #include "anagram.h"
 #include "anagrams.h"
-#include "wc.h"
 #include "wordlist.h"
+#include "wordlist_source.h"
 #include "words_from.h"
 
 using marshalled_ptr = jbyteArray;
@@ -246,7 +246,7 @@ Java_us_achromaticmetaphor_agram_Wordlist_get_1nwords(
   return wl->words_counts.size();
 }
 
-class wr : public cwlsrc
+class wr : public wordlist_source
 {
   JNIEnv * env;
   jmethodID wrread;
