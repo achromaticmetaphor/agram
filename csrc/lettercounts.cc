@@ -6,7 +6,20 @@
 #include "agram_types.h"
 
 #if AGRAM_ANDROID
-#include "astr.h"
+static inline void uastrcpy(std::vector<agram_codepoint> & dest,
+                            const agram_display_char * const src,
+                            const size_t slen)
+{
+  dest.clear();
+  for (std::size_t i = 0; i < slen; ++i)
+    if (src[i] >= 0xd800 && src[i] < 0xe000 && i + 1 < slen)
+      {
+        dest.push_back(((src[i] - 0xd800) << 10) | (src[i + 1] - 0xdc00));
+        i++;
+      }
+    else
+      dest.push_back(src[i]);
+}
 #endif
 
 static void lettercounts(std::vector<unsigned int> & counts,
@@ -29,12 +42,11 @@ void lettercounts(std::vector<unsigned int> & counts,
                   const agram_display_char * const str, const size_t slen)
 {
 #if AGRAM_ANDROID
-  letters.resize(slen + 1);
-  uastrcpy(letters.data(), str, slen);
+  uastrcpy(letters, str, slen);
 #else
   letters.resize(mbstowcs(nullptr, str, 0) + 1);
   mbstowcs(letters.data(), str, letters.size());
-#endif
   letters.pop_back();
+#endif
   lettercounts(counts, letters);
 }
